@@ -69,7 +69,7 @@
 		<PackageReference Include="Uno.UI.Sample.Banner" Version="1.44.0-dev.33" />
 		<PackageReference Include="Uno.Wasm.Bootstrap" Version="3.0.0-dev.138" />
 		<PackageReference Include="Uno.Wasm.Bootstrap.DevServer" Version="3.0.0-dev.138" />
-		<PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.1" />
+		<PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
 	</ItemGroup>
 	
 	<ItemGroup>
