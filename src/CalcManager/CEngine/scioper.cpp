@@ -28,6 +28,14 @@ CalcEngine::Rational CCalcEngine::DoOperation(int operation, CalcEngine::Rationa
             result ^= rhs;
             break;
 
+        case IDC_NAND:
+            result = (result & rhs) ^ GetChopNumber();
+            break;
+
+        case IDC_NOR:
+            result = (result | rhs) ^ GetChopNumber();
+            break;
+
         case IDC_RSHF:
         {
             if (m_fIntegerMode && result >= m_dwWordBitWidth) // Lsh/Rsh >= than current word size is always 0
@@ -45,14 +53,23 @@ CalcEngine::Rational CCalcEngine::DoOperation(int operation, CalcEngine::Rationa
             {
                 result = Integer(result);
 
-                auto tempRat = m_chopNumbers[m_numwidth] >> holdVal;
+                auto tempRat = GetChopNumber() >> holdVal;
                 tempRat = Integer(tempRat);
 
-                result |= tempRat ^ m_chopNumbers[m_numwidth];
+                result |= tempRat ^ GetChopNumber();
             }
             break;
         }
+        case IDC_RSHFL:
+        {
+            if (m_fIntegerMode && result >= m_dwWordBitWidth) // Lsh/Rsh >= than current word size is always 0
+            {
+                throw CALC_E_NORESULT;
+            }
 
+            result = rhs >> result;
+            break;
+        }
         case IDC_LSHF:
             if (m_fIntegerMode && result >= m_dwWordBitWidth) // Lsh/Rsh >= than current word size is always 0
             {
@@ -88,7 +105,7 @@ CalcEngine::Rational CCalcEngine::DoOperation(int operation, CalcEngine::Rationa
 
                 if (fMsb)
                 {
-                    result = (rhs ^ m_chopNumbers[m_numwidth]) + 1;
+                    result = (rhs ^ GetChopNumber()) + 1;
 
                     iNumeratorSign = -1;
                 }
@@ -98,7 +115,7 @@ CalcEngine::Rational CCalcEngine::DoOperation(int operation, CalcEngine::Rationa
 
                 if (fMsb)
                 {
-                    temp = (temp ^ m_chopNumbers[m_numwidth]) + 1;
+                    temp = (temp ^ GetChopNumber()) + 1;
 
                     iDenominatorSign = -1;
                 }
@@ -139,6 +156,10 @@ CalcEngine::Rational CCalcEngine::DoOperation(int operation, CalcEngine::Rationa
 
         case IDC_ROOT: // Calculates rhs to the result(th) root.
             result = Root(rhs, result);
+            break;
+
+        case IDC_LOGBASEY:
+            result = (Log(rhs) / Log(result));
             break;
         }
     }

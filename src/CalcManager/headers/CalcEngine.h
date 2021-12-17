@@ -14,10 +14,10 @@
 *
 \****************************************************************************/
 
+#include <random>
 #include "CCommand.h"
 #include "EngineStrings.h"
 #include "../Command.h"
-#include "../CalculatorVector.h"
 #include "../ExpressionCommand.h"
 #include "RadixType.h"
 #include "History.h" // for History Collector
@@ -31,14 +31,13 @@
 // The real exports follows later
 
 // This is expected to be in same order as IDM_QWORD, IDM_DWORD etc.
-enum eNUM_WIDTH
+enum class NUM_WIDTH
 {
     QWORD_WIDTH, // Number width of 64 bits mode (default)
     DWORD_WIDTH, // Number width of 32 bits mode
     WORD_WIDTH,  // Number width of 16 bits mode
     BYTE_WIDTH   // Number width of 16 bits mode
 };
-typedef enum eNUM_WIDTH NUM_WIDTH;
 static constexpr size_t NUM_WIDTH_LENGTH = 4;
 
 namespace CalculationManager
@@ -68,14 +67,18 @@ public:
     {
         return m_bError;
     }
+    bool IsInputEmpty()
+    {
+        return m_input.IsEmpty() && (m_numberString.empty() || m_numberString == L"0");
+    }
     bool FInRecordingState()
     {
         return m_bRecord;
     }
     void SettingsChanged();
     bool IsCurrentTooBigForTrig();
-    int GetCurrentRadix();
-    std::wstring GetCurrentResultForRadix(uint32_t radix, int32_t precision);
+    uint32_t GetCurrentRadix();
+    std::wstring GetCurrentResultForRadix(uint32_t radix, int32_t precision, bool groupDigitsPerRadix);
     void ChangePrecision(int32_t precision)
     {
         m_precision = precision;
@@ -94,7 +97,7 @@ public:
     {
         return s_engineStrings[std::to_wstring(ids)];
     }
-    static std::wstring_view GetString(std::wstring ids)
+    static std::wstring_view GetString(std::wstring_view ids)
     {
         return s_engineStrings[ids];
     }
@@ -102,7 +105,8 @@ public:
     {
         return GetString(IdStrFromCmdId(nOpCode));
     }
-    static std::wstring_view OpCodeToUnaryString(int nOpCode, bool fInv, ANGLE_TYPE angletype);
+    static std::wstring_view OpCodeToUnaryString(int nOpCode, bool fInv, AngleType angletype);
+    static std::wstring_view OpCodeToBinaryString(int nOpCode, bool isIntegerMode);
 
 private:
     bool m_fPrecedence;
@@ -112,11 +116,11 @@ private:
     int m_nOpCode;     /* ID value of operation.                       */
     int m_nPrevOpCode; // opcode which computed the number in m_currentVal. 0 if it is already bracketed or plain number or
     // if it hasn't yet been computed
-    bool m_bChangeOp;              /* Flag for changing operation.       */
+    bool m_bChangeOp;              // Flag for changing operation
     bool m_bRecord;                // Global mode: recording or displaying
     bool m_bSetCalcState;          // Flag for setting the engine result state
     CalcEngine::CalcInput m_input; // Global calc input object for decimal strings
-    eNUMOBJ_FMT m_nFE;             /* Scientific notation conversion flag.       */
+    NumberFormat m_nFE;            // Scientific notation conversion flag
     CalcEngine::Rational m_maxTrigonometricNum;
     std::unique_ptr<CalcEngine::Rational> m_memoryValue; // Current memory value.
 
@@ -138,20 +142,25 @@ private:
     std::wstring m_numberString;
 
     int m_nTempCom;                          /* Holding place for the last command.          */
-    int m_openParenCount;                    // Number of open parentheses.
+    size_t m_openParenCount;                 // Number of open parentheses.
     std::array<int, MAXPRECDEPTH> m_nOp;     /* Holding array for parenthesis operations.    */
     std::array<int, MAXPRECDEPTH> m_nPrecOp; /* Holding array for precedence  operations.    */
     size_t m_precedenceOpCount;              /* Current number of precedence ops in holding. */
     int m_nLastCom;                          // Last command entered.
-    ANGLE_TYPE m_angletype;                  // Current Angle type when in dec mode. one of deg, rad or grad
+    AngleType m_angletype;                   // Current Angle type when in dec mode. one of deg, rad or grad
     NUM_WIDTH m_numwidth;                    // one of qword, dword, word or byte mode.
     int32_t m_dwWordBitWidth;                // # of bits in currently selected word size
 
+    std::unique_ptr<std::mt19937> m_randomGeneratorEngine;
+    std::unique_ptr<std::uniform_real_distribution<>> m_distr;
+
+    uint64_t m_carryBit;
+
     CHistoryCollector m_HistoryCollector; // Accumulator of each line of history as various commands are processed
 
-    std::array<CalcEngine::Rational, NUM_WIDTH_LENGTH> m_chopNumbers;      // word size enforcement
-    std::array<std::wstring, NUM_WIDTH_LENGTH> m_maxDecimalValueStrings;   // maximum values represented by a given word width based off m_chopNumbers
-    static std::unordered_map<std::wstring, std::wstring> s_engineStrings; // the string table shared across all instances
+    std::array<CalcEngine::Rational, NUM_WIDTH_LENGTH> m_chopNumbers;           // word size enforcement
+    std::array<std::wstring, NUM_WIDTH_LENGTH> m_maxDecimalValueStrings;        // maximum values represented by a given word width based off m_chopNumbers
+    static std::unordered_map<std::wstring_view, std::wstring> s_engineStrings; // the string table shared across all instances
     wchar_t m_decimalSeparator;
     wchar_t m_groupSeparator;
 
@@ -165,17 +174,21 @@ private:
     void DisplayAnnounceBinaryOperator();
     void SetPrimaryDisplay(const std::wstring& szText, bool isError = false);
     void ClearTemporaryValues();
+    void ClearDisplay();
     CalcEngine::Rational TruncateNumForIntMath(CalcEngine::Rational const& rat);
     CalcEngine::Rational SciCalcFunctions(CalcEngine::Rational const& rat, uint32_t op);
     CalcEngine::Rational DoOperation(int operation, CalcEngine::Rational const& lhs, CalcEngine::Rational const& rhs);
-    void SetRadixTypeAndNumWidth(RADIX_TYPE radixtype, NUM_WIDTH numwidth);
+    void SetRadixTypeAndNumWidth(RadixType radixtype, NUM_WIDTH numwidth);
     int32_t DwWordBitWidthFromeNumWidth(NUM_WIDTH numwidth);
-    uint32_t NRadixFromRadixType(RADIX_TYPE radixtype);
+    uint32_t NRadixFromRadixType(RadixType radixtype);
+    double GenerateRandomNumber();
 
     bool TryToggleBit(CalcEngine::Rational& rat, uint32_t wbitno);
     void CheckAndAddLastBinOpToHistory(bool addToHistory = true);
 
     void InitChopNumbers();
+    CalcEngine::Rational GetChopNumber() const;
+    std::wstring GetMaxDecimalValueString() const;
 
     static void LoadEngineStrings(CalculationManager::IResourceProvider& resourceProvider);
     static int IdStrFromCmdId(int id)

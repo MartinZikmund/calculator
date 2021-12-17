@@ -22,9 +22,9 @@ public:
     ~CHistoryCollector();
     void AddOpndToHistory(std::wstring_view numStr, CalcEngine::Rational const& rat, bool fRepetition = false);
     void RemoveLastOpndFromHistory();
-    void AddBinOpToHistory(int nOpCode, bool fNoRepetition = true);
-    void ChangeLastBinOp(int nOpCode, bool fPrecInvToHigher);
-    void AddUnaryOpToHistory(int nOpCode, bool fInv, ANGLE_TYPE angletype);
+    void AddBinOpToHistory(int nOpCode, bool isIntgerMode, bool fNoRepetition = true);
+    void ChangeLastBinOp(int nOpCode, bool fPrecInvToHigher, bool isIntgerMode);
+    void AddUnaryOpToHistory(int nOpCode, bool fInv, AngleType angletype);
     void AddOpenBraceToHistory();
     void AddCloseBraceToHistory();
     void PushLastOpndStart(int ichOpndStart = -1);
@@ -32,6 +32,7 @@ public:
     void EnclosePrecInversionBrackets();
     bool FOpndAddedToHistory();
     void CompleteHistoryLine(std::wstring_view numStr);
+    void CompleteEquation(std::wstring_view numStr);
     void ClearHistoryLine(std::wstring_view errStr);
     int AddCommand(_In_ const std::shared_ptr<IExpressionCommand>& spCommand);
     void UpdateHistoryExpression(uint32_t radix, int32_t precision);
@@ -51,8 +52,8 @@ private:
     int m_curOperandIndex; // Stack index for the above stack
     bool m_bLastOpndBrace; // iff the last opnd in history is already braced so we can avoid putting another one for unary operator
     wchar_t m_decimalSymbol;
-    std::shared_ptr<CalculatorVector<std::pair<std::wstring, int>>> m_spTokens;
-    std::shared_ptr<CalculatorVector<std::shared_ptr<IExpressionCommand>>> m_spCommands;
+    std::shared_ptr<std::vector<std::pair<std::wstring, int>>> m_spTokens;
+    std::shared_ptr<std::vector<std::shared_ptr<IExpressionCommand>>> m_spCommands;
 
 private:
     void ReinitHistory();
@@ -60,5 +61,5 @@ private:
     void TruncateEquationSzFromIch(int ich);
     void SetExpressionDisplay();
     void InsertSzInEquationSz(std::wstring_view str, int icommandIndex, int ich);
-    std::shared_ptr<CalculatorVector<int>> GetOperandCommandsFromString(std::wstring_view numStr);
+    std::shared_ptr<std::vector<int>> GetOperandCommandsFromString(std::wstring_view numStr);
 };

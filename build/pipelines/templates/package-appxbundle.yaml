@@ -1,5 +1,10 @@
 # This template contains a job which takes .appx packages which were built separately for each
-# architecture (arm, x86, etc.) and combines them into a single .appxbundle.
+# architecture (arm, x86, etc.) and combines them into a single .appxbundle. In release builds,
+# this job also signs the bundle and creates StoreBroker packages.
+
+parameters:
+  signBundle: false
+  createStoreBrokerPackages: false
 
 jobs:
 - job: Package
@@ -7,24 +12,22 @@ jobs:
     - Buildx64
     - Buildx86
     - BuildARM
-    - BuildARM64
   condition: |
     and
     (
       in(dependencies.Buildx64.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'),
       in(dependencies.Buildx86.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'),
-      in(dependencies.BuildARM.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'),
-      in(dependencies.BuildARM64.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
+      in(dependencies.BuildARM.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     ) 
   pool:
-    vmImage: vs2017-win2016
-  workspace:
-    clean: outputs
+    vmImage: windows-2019
   variables:
     skipComponentGovernanceDetection: true
+    StoreBrokerMediaRootPath: $(TEMP)\SBMedia
+    StoreBrokerPackagePath: $(Build.ArtifactStagingDirectory)\storeBrokerPayload
   steps:
   - checkout: self
-    clean: true
+    fetchDepth: 1
 
   - task: DownloadBuildArtifacts@0
     displayName: Download all .appx artifacts
@@ -32,16 +35,29 @@ jobs:
       artifactName: drop
       itemPattern: '**/*.appx'
 
+  - ${{ if eq(parameters.createStoreBrokerPackages, true) }}:
+    - task: UniversalPackages@0
+      displayName: Download internals package
+      inputs:
+        command: download
+        downloadDirectory: $(Build.SourcesDirectory)
+        vstsFeed: WindowsInboxApps
+        vstsFeedPackage: calculator-internals
+        vstsPackageVersion: 0.0.67
+
   - task: PowerShell@2
     displayName: Generate AppxBundle mapping
     inputs:
       filePath: $(Build.SourcesDirectory)\build\scripts\CreateAppxBundleMapping.ps1
       arguments: '-InputPath $(Build.ArtifactStagingDirectory)\drop\Release -ProjectName Calculator -OutputFile $(Build.BinariesDirectory)\AppxBundleMapping.txt'
 
-  - script: '"C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\MakeAppx.exe" bundle /v /bv %BUNDLEVERSION% /f %MAPPINGFILEPATH% /p %OUTPUTPATH%'
+  - powershell: |
+      $buildVersion = [version]$Env:BUILDVERSION
+      $bundleVersion = "2021.$($buildVersion.Minor).$($buildVersion.Build).$($buildVersion.Revision)"
+      & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x86\MakeAppx.exe" bundle /v /bv $bundleVersion /f $Env:MAPPINGFILEPATH /p $Env:OUTPUTPATH
     displayName: Make AppxBundle
     env:
-      BUNDLEVERSION: $(Build.BuildNumber)
+      BUILDVERSION: $(Build.BuildNumber)
       MAPPINGFILEPATH: $(Build.BinariesDirectory)\AppxBundleMapping.txt
       OUTPUTPATH: $(Build.BinariesDirectory)\Microsoft.WindowsCalculator_8wekyb3d8bbwe.appxbundle
 
@@ -57,3 +73,82 @@ jobs:
     inputs:
       artifactName: appxBundle
       pathToPublish: $(Build.ArtifactStagingDirectory)\appxBundle
+
+  - ${{ if eq(parameters.signBundle, true) }}:
+    - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+      displayName: Send appxbundle to code signing service
+      inputs:
+        ConnectedServiceName: Essential Experiences Codesign
+        FolderPath: $(Build.ArtifactStagingDirectory)\appxBundle
+        Pattern: Microsoft.WindowsCalculator_8wekyb3d8bbwe.appxbundle
+        signConfigType: inlineSignParams
+        inlineOperation: |
+          [
+            {
+              "CertTemplateName": "WINMSAPP1ST",
+              "CertSubjectName": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+              "KeyCode": "Dynamic",
+              "OperationCode": "SigntoolvNextSign",
+              "Parameters": {
+                "OpusName": "Microsoft",
+                "OpusInfo": "http://www.microsoft.com",
+                "FileDigest": "/fd \"SHA256\"",
+                "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              },
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            },
+            {
+              "CertTemplateName": "WINMSAPP1ST",
+              "CertSubjectName": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+              "KeyCode": "Dynamic",
+              "OperationCode": "SigntoolvNextVerify",
+              "Parameters": {},
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            }
+          ]
+    - task: PublishBuildArtifacts@1
+      displayName: Publish AppxBundleSigned artifact
+      inputs:
+        pathtoPublish: $(Build.ArtifactStagingDirectory)\appxBundle
+        artifactName: appxBundleSigned
+
+    - ${{ if eq(parameters.createStoreBrokerPackages, true) }}:      
+      - powershell: |
+          # Just modify this line to indicate where your en-us PDP file is. Leave the other lines alone.
+          $enUSPdpFilePath = "$(Build.SourcesDirectory)\PDP\en-US\PDP.xml"
+
+          # This is going to save the release value from the PDP file to $(SBMediaReleaseVersion)
+          # which you can then refer to in the UniversalPackages task.
+          $release = ([xml](Get-Content $enUSPdpFilePath)).ProductDescription.Release.Trim()
+          Write-Host "##vso[task.setvariable variable=SBMediaReleaseVersion;]$release"
+        displayName: Determine the PDP Media release version from the en-us PDP file
+
+      - task: UniversalPackages@0
+        displayName: Download PDP media (screenshots, trailers) universal package
+        inputs:
+          command: download
+          downloadDirectory: $(StoreBrokerMediaRootPath)/$(SBMediaReleaseVersion)
+          vstsFeed: WindowsInboxApps
+          vstsFeedPackage: calculator-pdp-media
+          vstsPackageVersion: $(SBMediaReleaseVersion)
+      
+      - task: MS-RDX-MRO.windows-store-publish-dev.package-task.store-package@2
+        displayName: Create StoreBroker Payload
+        inputs:
+          serviceEndpoint: Calculator StoreBroker Connection
+          sbConfigPath: Tools/Build/StoreBroker/SBCalculatorConfig.json
+          sourceFolder: $(Build.ArtifactStagingDirectory)/appxBundle
+          contents: Microsoft.WindowsCalculator_8wekyb3d8bbwe.appxbundle
+          pdpPath: $(Build.SourcesDirectory)\PDP
+          pdpInclude: PDP.xml
+          pdpMediaPath: $(StoreBrokerMediaRootPath)
+          outSBPackagePath: $(StoreBrokerPackagePath)
+          outSBName: SBCalculator
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish StoreBroker Payload artifact
+        inputs:
+          pathtoPublish: $(StoreBrokerPackagePath)
+          artifactName: storeBrokerPayload

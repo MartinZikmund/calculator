@@ -301,3 +301,12 @@ src/GraphControl/GraphingImplOverrides.props
 
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
+.mfractor/
+src/CalcViewModel/DataLoaders/DataLoaderConstants.h
+!src/Calculator/WindowsDev_TemporaryKey.pfx
+!src/CalculatorUnitTests/WindowsDev_TemporaryKey.pfx
+!src/x64
+!src/x86
+!src/out
+!src/ARM
+!src/ARM

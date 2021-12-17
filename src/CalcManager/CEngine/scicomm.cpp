@@ -13,9 +13,12 @@
 * Author:
 \****************************************************************************/
 
+#include <iomanip>
 #include <string>
 #include "headers/CalcEngine.h"
 #include "headers/CalcUtils.h"
+#include <sstream>
+#include "NumberFormattingUtils.h"
 
 using namespace std;
 using namespace CalcEngine;
@@ -28,20 +31,17 @@ namespace
     // 0 is returned. Higher the number, higher the precedence of the operator.
     int NPrecedenceOfOp(int nopCode)
     {
-        static uint8_t rgbPrec[] = { 0, 0,        IDC_OR, 0,       IDC_XOR, 0,       IDC_AND, 1,       IDC_ADD, 2,       IDC_SUB, 2,        IDC_RSHF,
-                                     3, IDC_LSHF, 3,      IDC_MOD, 3,       IDC_DIV, 3,       IDC_MUL, 3,       IDC_PWR, 4,       IDC_ROOT, 4 };
-        unsigned int iPrec;
+        static uint16_t rgbPrec[] = { 0,        0, IDC_OR,    0, IDC_XOR, 0, IDC_AND, 1, IDC_NAND, 1, IDC_NOR, 1, IDC_ADD,  2, IDC_SUB,      2, IDC_RSHF, 3,
+                                      IDC_LSHF, 3, IDC_RSHFL, 3, IDC_MOD, 3, IDC_DIV, 3, IDC_MUL,  3, IDC_PWR, 4, IDC_ROOT, 4, IDC_LOGBASEY, 4 };
 
-        iPrec = 0;
-        while ((iPrec < size(rgbPrec)) && (nopCode != rgbPrec[iPrec]))
+        for (unsigned int iPrec = 0; iPrec < size(rgbPrec); iPrec += 2)
         {
-            iPrec += 2;
+            if (nopCode == rgbPrec[iPrec])
+            {
+                return rgbPrec[iPrec + 1];
+            }
         }
-        if (iPrec >= size(rgbPrec))
-        {
-            iPrec = 0;
-        }
-        return rgbPrec[iPrec + 1];
+        return 0;
     }
 }
 
@@ -76,6 +76,14 @@ void CCalcEngine::ClearTemporaryValues()
     m_bError = false;
 }
 
+void CCalcEngine::ClearDisplay()
+{
+    if (nullptr != m_pCalcDisplay)
+    {
+        m_pCalcDisplay->SetExpressionDisplay(make_shared<vector<pair<wstring, int>>>(), make_shared<vector<shared_ptr<IExpressionCommand>>>());
+    }
+}
+
 void CCalcEngine::ProcessCommand(OpCode wParam)
 {
     if (wParam == IDC_SET_RESULT)
@@ -89,8 +97,6 @@ void CCalcEngine::ProcessCommand(OpCode wParam)
 
 void CCalcEngine::ProcessCommandWorker(OpCode wParam)
 {
-    int nx, ni;
-
     // Save the last command.  Some commands are not saved in this manor, these
     // commands are:
     // Inv, Deg, Rad, Grad, Stat, FE, MClear, Back, and Exp.  The excluded
@@ -101,6 +107,12 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     {
         m_nLastCom = m_nTempCom;
         m_nTempCom = (int)wParam;
+    }
+
+    // Clear expression shown after = sign, when user do any action.
+    if (!m_bNoPrevEqu)
+    {
+        ClearDisplay();
     }
 
     if (m_bError)
@@ -124,23 +136,21 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     // Toggle Record/Display mode if appropriate.
     if (m_bRecord)
     {
-        if (IsOpInRange(wParam, IDC_AND, IDC_MMINUS) || IsOpInRange(wParam, IDC_OPENP, IDC_CLOSEP) || IsOpInRange(wParam, IDM_HEX, IDM_BIN)
-            || IsOpInRange(wParam, IDM_QWORD, IDM_BYTE) || IsOpInRange(wParam, IDM_DEG, IDM_GRAD)
-            || IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITSTART + 63) || (IDC_INV == wParam) || (IDC_SIGN == wParam && 10 != m_radix))
+        if (IsBinOpCode(wParam) || IsUnaryOpCode(wParam) || IsOpInRange(wParam, IDC_FE, IDC_MMINUS) || IsOpInRange(wParam, IDC_OPENP, IDC_CLOSEP)
+            || IsOpInRange(wParam, IDM_HEX, IDM_BIN) || IsOpInRange(wParam, IDM_QWORD, IDM_BYTE) || IsOpInRange(wParam, IDM_DEG, IDM_GRAD)
+            || IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND) || (IDC_INV == wParam) || (IDC_SIGN == wParam && 10 != m_radix) || (IDC_RAND == wParam)
+            || (IDC_EULER == wParam))
         {
             m_bRecord = false;
             m_currentVal = m_input.ToRational(m_radix, m_precision);
             DisplayNum(); // Causes 3.000 to shrink to 3. on first op.
         }
     }
-    else
+    else if (IsDigitOpCode(wParam) || wParam == IDC_PNT)
     {
-        if (IsDigitOpCode(wParam) || wParam == IDC_PNT)
-        {
-            m_bRecord = true;
-            m_input.Clear();
-            CheckAndAddLastBinOpToHistory();
-        }
+        m_bRecord = true;
+        m_input.Clear();
+        CheckAndAddLastBinOpToHistory();
     }
 
     // Interpret digit keys.
@@ -155,7 +165,7 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             return;
         }
 
-        if (!m_input.TryAddDigit(iValue, m_radix, m_fIntegerMode, m_maxDecimalValueStrings[m_numwidth], m_dwWordBitWidth, m_cIntDigitsSav))
+        if (!m_input.TryAddDigit(iValue, m_radix, m_fIntegerMode, GetMaxDecimalValueString(), m_dwWordBitWidth, m_cIntDigitsSav))
         {
             HandleErrorCommand(wParam);
             HandleMaxDigitsReached();
@@ -173,7 +183,6 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         // Change the operation if last input was operation.
         if (IsBinOpCode(m_nLastCom))
         {
-            int nPrev;
             bool fPrecInvToHigher = false; // Is Precedence Inversion from lower to higher precedence happening ??
 
             m_nOpCode = (int)wParam;
@@ -184,16 +193,16 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             // Here * is m_nPrevOpCode, m_currentVal is 2  (by 1*2), m_nLastCom is +, m_nOpCode is ^
             if (m_fPrecedence && 0 != m_nPrevOpCode)
             {
-                nPrev = NPrecedenceOfOp(m_nPrevOpCode);
-                nx = NPrecedenceOfOp(m_nLastCom);
-                ni = NPrecedenceOfOp(m_nOpCode);
+                int nPrev = NPrecedenceOfOp(m_nPrevOpCode);
+                int nx = NPrecedenceOfOp(m_nLastCom);
+                int ni = NPrecedenceOfOp(m_nOpCode);
                 if (nx <= nPrev && ni > nPrev) // condition for Precedence Inversion
                 {
                     fPrecInvToHigher = true;
                     m_nPrevOpCode = 0; // Once the precedence inversion has put additional brackets, its no longer required
                 }
             }
-            m_HistoryCollector.ChangeLastBinOp(m_nOpCode, fPrecInvToHigher);
+            m_HistoryCollector.ChangeLastBinOp(m_nOpCode, fPrecInvToHigher, m_fIntegerMode);
             DisplayAnnounceBinaryOperator();
             return;
         }
@@ -213,8 +222,8 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         {
         DoPrecedenceCheckAgain:
 
-            nx = NPrecedenceOfOp((int)wParam);
-            ni = NPrecedenceOfOp(m_nOpCode);
+            int nx = NPrecedenceOfOp((int)wParam);
+            int ni = NPrecedenceOfOp(m_nOpCode);
 
             if ((nx > ni) && m_fPrecedence)
             {
@@ -244,6 +253,12 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
                 if (!m_bError)
                 {
                     DisplayNum();
+                    if (!m_fPrecedence)
+                    {
+                        wstring groupedString = GroupDigitsPerRadix(m_numberString, m_radix);
+                        m_HistoryCollector.CompleteEquation(groupedString);
+                        m_HistoryCollector.AddOpndToHistory(m_numberString, m_currentVal);
+                    }
                 }
 
                 if ((m_precedenceOpCount != 0) && (m_nPrecOp[m_precedenceOpCount - 1]))
@@ -270,10 +285,9 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         }
 
         DisplayAnnounceBinaryOperator();
-
         m_lastVal = m_currentVal;
         m_nOpCode = (int)wParam;
-        m_HistoryCollector.AddBinOpToHistory(m_nOpCode);
+        m_HistoryCollector.AddBinOpToHistory(m_nOpCode, m_fIntegerMode);
         m_bNoPrevEqu = m_bChangeOp = true;
         return;
     }
@@ -303,7 +317,8 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             m_HistoryCollector.AddUnaryOpToHistory((int)wParam, m_bInv, m_angletype);
         }
 
-        if ((wParam == IDC_SIN) || (wParam == IDC_COS) || (wParam == IDC_TAN) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH))
+        if ((wParam == IDC_SIN) || (wParam == IDC_COS) || (wParam == IDC_TAN) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH)
+            || (wParam == IDC_SEC) || (wParam == IDC_CSC) || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH))
         {
             if (IsCurrentTooBigForTrig())
             {
@@ -332,7 +347,8 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
 
         if (m_bInv
             && ((wParam == IDC_CHOP) || (wParam == IDC_SIN) || (wParam == IDC_COS) || (wParam == IDC_TAN) || (wParam == IDC_LN) || (wParam == IDC_DMS)
-                || (wParam == IDC_DEGREES) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH)))
+                || (wParam == IDC_DEGREES) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH) || (wParam == IDC_SEC) || (wParam == IDC_CSC)
+                || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH)))
         {
             m_bInv = false;
         }
@@ -341,10 +357,10 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     }
 
     // Tiny binary edit windows clicked. Toggle that bit and update display
-    if (IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITSTART + 63))
+    if (IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND))
     {
         // Same reasoning as for unary operators. We need to seed it previous number
-        if (m_nLastCom >= IDC_AND && m_nLastCom <= IDC_PWR)
+        if (IsBinOpCode(m_nLastCom))
         {
             m_currentVal = m_lastVal;
         }
@@ -366,24 +382,25 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     {
         if (!m_bChangeOp)
         {
-            // A special goody we are doing to preserve the history, if all was done was serious of unary operations last
+            // Preserve history, if everything done before was a series of unary operations.
             CheckAndAddLastBinOpToHistory(false);
         }
 
         m_lastVal = 0;
 
         m_bChangeOp = false;
-        m_precedenceOpCount = m_nTempCom = m_nLastCom = m_nOpCode = m_openParenCount = 0;
+        m_openParenCount = 0;
+        m_precedenceOpCount = m_nTempCom = m_nLastCom = m_nOpCode = 0;
         m_nPrevOpCode = 0;
         m_bNoPrevEqu = true;
+        m_carryBit = 0;
 
         /* clear the parenthesis status box indicator, this will not be
         cleared for CENTR */
         if (nullptr != m_pCalcDisplay)
         {
             m_pCalcDisplay->SetParenthesisNumber(0);
-            m_pCalcDisplay->SetExpressionDisplay(
-                make_shared<CalculatorVector<pair<wstring, int>>>(), make_shared<CalculatorVector<shared_ptr<IExpressionCommand>>>());
+            ClearDisplay();
         }
 
         m_HistoryCollector.ClearHistoryLine(wstring());
@@ -457,8 +474,8 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             m_lastVal = m_precedenceVals[m_precedenceOpCount];
 
             // Precedence Inversion check
-            ni = NPrecedenceOfOp(m_nPrevOpCode);
-            nx = NPrecedenceOfOp(m_nOpCode);
+            int ni = NPrecedenceOfOp(m_nPrevOpCode);
+            int nx = NPrecedenceOfOp(m_nOpCode);
             if (ni <= nx)
             {
                 m_HistoryCollector.EnclosePrecInversionBrackets();
@@ -473,12 +490,7 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         if (!m_bError)
         {
             wstring groupedString = GroupDigitsPerRadix(m_numberString, m_radix);
-            m_HistoryCollector.CompleteHistoryLine(groupedString);
-            if (nullptr != m_pCalcDisplay)
-            {
-                m_pCalcDisplay->SetExpressionDisplay(
-                    make_shared<CalculatorVector<pair<wstring, int>>>(), make_shared<CalculatorVector<shared_ptr<IExpressionCommand>>>());
-            }
+            m_HistoryCollector.CompleteEquation(groupedString);
         }
 
         m_bChangeOp = false;
@@ -488,20 +500,15 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
 
     case IDC_OPENP:
     case IDC_CLOSEP:
-        nx = 0;
-        if (wParam == IDC_OPENP)
-        {
-            nx = 1;
-        }
 
         // -IF- the Paren holding array is full and we try to add a paren
         // -OR- the paren holding array is empty and we try to remove a
         //      paren
         // -OR- the precedence holding array is full
-        if ((m_openParenCount >= MAXPRECDEPTH && nx) || (!m_openParenCount && !nx)
+        if ((m_openParenCount >= MAXPRECDEPTH && (wParam == IDC_OPENP)) || (!m_openParenCount && (wParam != IDC_OPENP))
             || ((m_precedenceOpCount >= MAXPRECDEPTH && m_nPrecOp[m_precedenceOpCount - 1] != 0)))
         {
-            if (!m_openParenCount && !nx)
+            if (!m_openParenCount && (wParam != IDC_OPENP))
             {
                 m_pCalcDisplay->OnNoRightParenAdded();
             }
@@ -510,8 +517,14 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             break;
         }
 
-        if (nx)
+        if (wParam == IDC_OPENP)
         {
+            // if there's an omitted multiplication sign 
+            if (IsDigitOpCode(m_nLastCom) || IsUnaryOpCode(m_nLastCom) || m_nLastCom == IDC_PNT || m_nLastCom == IDC_CLOSEP)
+            {
+                ProcessCommand(IDC_MUL);
+            }
+
             CheckAndAddLastBinOpToHistory();
             m_HistoryCollector.AddOpenBraceToHistory();
 
@@ -558,8 +571,8 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
             for (m_nOpCode = m_nPrecOp[--m_precedenceOpCount]; m_nOpCode; m_nOpCode = m_nPrecOp[--m_precedenceOpCount])
             {
                 // Precedence Inversion check
-                ni = NPrecedenceOfOp(m_nPrevOpCode);
-                nx = NPrecedenceOfOp(m_nOpCode);
+                int ni = NPrecedenceOfOp(m_nPrevOpCode);
+                int nx = NPrecedenceOfOp(m_nOpCode);
                 if (ni <= nx)
                 {
                     m_HistoryCollector.EnclosePrecInversionBrackets();
@@ -587,7 +600,7 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         // Set the "(=xx" indicator.
         if (nullptr != m_pCalcDisplay)
         {
-            m_pCalcDisplay->SetParenthesisNumber(m_openParenCount >= 0 ? static_cast<unsigned int>(m_openParenCount) : 0);
+            m_pCalcDisplay->SetParenthesisNumber(static_cast<unsigned int>(m_openParenCount));
         }
 
         if (!m_bError)
@@ -603,7 +616,7 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     case IDM_OCT:
     case IDM_BIN:
     {
-        SetRadixTypeAndNumWidth((RADIX_TYPE)(wParam - IDM_HEX), (NUM_WIDTH)-1);
+        SetRadixTypeAndNumWidth((RadixType)(wParam - IDM_HEX), (NUM_WIDTH)-1);
         m_HistoryCollector.UpdateHistoryExpression(m_radix, m_precision);
         break;
     }
@@ -619,20 +632,20 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         }
 
         // Compat. mode BaseX: Qword, Dword, Word, Byte
-        SetRadixTypeAndNumWidth((RADIX_TYPE)-1, (NUM_WIDTH)(wParam - IDM_QWORD));
+        SetRadixTypeAndNumWidth((RadixType)-1, (NUM_WIDTH)(wParam - IDM_QWORD));
         break;
 
     case IDM_DEG:
     case IDM_RAD:
     case IDM_GRAD:
-        m_angletype = static_cast<ANGLE_TYPE>(wParam - IDM_DEG);
+        m_angletype = static_cast<AngleType>(wParam - IDM_DEG);
         break;
 
     case IDC_SIGN:
     {
         if (m_bRecord)
         {
-            if (m_input.TryToggleSign(m_fIntegerMode, m_maxDecimalValueStrings[m_numwidth]))
+            if (m_input.TryToggleSign(m_fIntegerMode, GetMaxDecimalValueString()))
             {
                 DisplayNum();
             }
@@ -699,7 +712,6 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
     case IDC_MCLEAR:
         m_memoryValue = make_unique<Rational>(wParam == IDC_STORE ? TruncateNumForIntMath(m_currentVal) : 0);
         break;
-
     case IDC_PI:
         if (!m_fIntegerMode)
         {
@@ -712,10 +724,46 @@ void CCalcEngine::ProcessCommandWorker(OpCode wParam)
         }
         HandleErrorCommand(wParam);
         break;
+    case IDC_RAND:
+        if (!m_fIntegerMode)
+        {
+            CheckAndAddLastBinOpToHistory(); // rand is like entering the number
 
+            wstringstream str;
+            str << fixed << setprecision(m_precision) << GenerateRandomNumber();
+
+            auto rat = StringToRat(false, str.str(), false, L"", m_radix, m_precision);
+            if (rat != nullptr)
+            {
+                m_currentVal = Rational{ rat };
+            }
+            else
+            {
+                m_currentVal = Rational{ 0 };
+            }
+            destroyrat(rat);
+
+            DisplayNum();
+            m_bInv = false;
+            break;
+        }
+        HandleErrorCommand(wParam);
+        break;
+    case IDC_EULER:
+        if (!m_fIntegerMode)
+        {
+            CheckAndAddLastBinOpToHistory(); // e is like entering the number
+            m_currentVal = Rational{ rat_exp };
+
+            DisplayNum();
+            m_bInv = false;
+            break;
+        }
+        HandleErrorCommand(wParam);
+        break;
     case IDC_FE:
         // Toggle exponential notation display.
-        m_nFE = NUMOBJ_FMT(!(int)m_nFE);
+        m_nFE = NumberFormat(!(int)m_nFE);
         DisplayNum();
         break;
 
@@ -760,7 +808,7 @@ void CCalcEngine::ResolveHighestPrecedenceOperation()
         {
             m_currentVal = m_holdVal;
             DisplayNum(); // to update the m_numberString
-            m_HistoryCollector.AddBinOpToHistory(m_nOpCode, false);
+            m_HistoryCollector.AddBinOpToHistory(m_nOpCode, m_fIntegerMode, false);
             m_HistoryCollector.AddOpndToHistory(m_numberString, m_currentVal); // Adding the repeated last op to history
         }
 
@@ -862,11 +910,13 @@ struct FunctionNameElement
     wstring gradString;
     wstring inverseGradString; // Will fall back to gradString if empty
 
+    wstring programmerModeString;
+
     bool hasAngleStrings = ((!radString.empty()) || (!inverseRadString.empty()) || (!gradString.empty()) || (!inverseGradString.empty()));
 };
 
 // Table for each unary operator
-static const std::unordered_map<int, FunctionNameElement> unaryOperatorStringTable = {
+static const std::unordered_map<int, FunctionNameElement> operatorStringTable = {
     { IDC_CHOP, { L"", SIDS_FRAC } },
 
     { IDC_SIN, { SIDS_SIND, SIDS_ASIND, SIDS_SINR, SIDS_ASINR, SIDS_SING, SIDS_ASING } },
@@ -877,6 +927,14 @@ static const std::unordered_map<int, FunctionNameElement> unaryOperatorStringTab
     { IDC_COSH, { L"", SIDS_ACOSH } },
     { IDC_TANH, { L"", SIDS_ATANH } },
 
+    { IDC_SEC, { SIDS_SECD, SIDS_ASECD, SIDS_SECR, SIDS_ASECR, SIDS_SECG, SIDS_ASECG } },
+    { IDC_CSC, { SIDS_CSCD, SIDS_ACSCD, SIDS_CSCR, SIDS_ACSCR, SIDS_CSCG, SIDS_ACSCG } },
+    { IDC_COT, { SIDS_COTD, SIDS_ACOTD, SIDS_COTR, SIDS_ACOTR, SIDS_COTG, SIDS_ACOTG } },
+
+    { IDC_SECH, { SIDS_SECH, SIDS_ASECH } },
+    { IDC_CSCH, { SIDS_CSCH, SIDS_ACSCH } },
+    { IDC_COTH, { SIDS_COTH, SIDS_ACOTH } },
+
     { IDC_LN, { L"", SIDS_POWE } },
     { IDC_SQR, { SIDS_SQR } },
     { IDC_CUB, { SIDS_CUBE } },
@@ -884,18 +942,30 @@ static const std::unordered_map<int, FunctionNameElement> unaryOperatorStringTab
     { IDC_REC, { SIDS_RECIPROC } },
     { IDC_DMS, { L"", SIDS_DEGREES } },
     { IDC_SIGN, { SIDS_NEGATE } },
-    { IDC_DEGREES, { SIDS_DEGREES } }
+    { IDC_DEGREES, { SIDS_DEGREES } },
+    { IDC_POW2, { SIDS_TWOPOWX } },
+    { IDC_LOGBASEY, { SIDS_LOGBASEY } },
+    { IDC_ABS, { SIDS_ABS } },
+    { IDC_CEIL, { SIDS_CEIL } },
+    { IDC_FLOOR, { SIDS_FLOOR } },
+    { IDC_NAND, { SIDS_NAND } },
+    { IDC_NOR, { SIDS_NOR } },
+    { IDC_RSHFL, { SIDS_RSH } },
+    { IDC_RORC, { SIDS_ROR } },
+    { IDC_ROLC, { SIDS_ROL } },
+    { IDC_CUBEROOT, { SIDS_CUBEROOT } },
+    { IDC_MOD, { SIDS_MOD, L"", L"", L"", L"", L"", SIDS_PROGRAMMER_MOD } },
 };
 
-wstring_view CCalcEngine::OpCodeToUnaryString(int nOpCode, bool fInv, ANGLE_TYPE angletype)
+wstring_view CCalcEngine::OpCodeToUnaryString(int nOpCode, bool fInv, AngleType angletype)
 {
     // Try to lookup the ID in the UFNE table
     wstring ids = L"";
 
-    if (auto pair = unaryOperatorStringTable.find(nOpCode); pair != unaryOperatorStringTable.end())
+    if (auto pair = operatorStringTable.find(nOpCode); pair != operatorStringTable.end())
     {
         const FunctionNameElement& element = pair->second;
-        if (!element.hasAngleStrings || ANGLE_DEG == angletype)
+        if (!element.hasAngleStrings || AngleType::Degrees == angletype)
         {
             if (fInv)
             {
@@ -907,7 +977,7 @@ wstring_view CCalcEngine::OpCodeToUnaryString(int nOpCode, bool fInv, ANGLE_TYPE
                 ids = element.degreeString;
             }
         }
-        else if (ANGLE_RAD == angletype)
+        else if (AngleType::Radians == angletype)
         {
             if (fInv)
             {
@@ -918,7 +988,7 @@ wstring_view CCalcEngine::OpCodeToUnaryString(int nOpCode, bool fInv, ANGLE_TYPE
                 ids = element.radString;
             }
         }
-        else if (ANGLE_GRAD == angletype)
+        else if (AngleType::Gradians == angletype)
         {
             if (fInv)
             {
@@ -940,17 +1010,43 @@ wstring_view CCalcEngine::OpCodeToUnaryString(int nOpCode, bool fInv, ANGLE_TYPE
     return OpCodeToString(nOpCode);
 }
 
+wstring_view CCalcEngine::OpCodeToBinaryString(int nOpCode, bool isIntegerMode)
+{
+    // Try to lookup the ID in the UFNE table
+    wstring ids = L"";
+
+    if (auto pair = operatorStringTable.find(nOpCode); pair != operatorStringTable.end())
+    {
+        if (isIntegerMode && !pair->second.programmerModeString.empty())
+        {
+            ids = pair->second.programmerModeString;
+        }
+        else
+        {
+            ids = pair->second.degreeString;
+        }
+    }
+
+    if (!ids.empty())
+    {
+        return GetString(ids);
+    }
+
+    // If we didn't find an ID in the table, use the op code.
+    return OpCodeToString(nOpCode);
+}
+
 bool CCalcEngine::IsCurrentTooBigForTrig()
 {
     return m_currentVal >= m_maxTrigonometricNum;
 }
 
-int CCalcEngine::GetCurrentRadix()
+uint32_t CCalcEngine::GetCurrentRadix()
 {
     return m_radix;
 }
 
-wstring CCalcEngine::GetCurrentResultForRadix(uint32_t radix, int32_t precision)
+wstring CCalcEngine::GetCurrentResultForRadix(uint32_t radix, int32_t precision, bool groupDigitsPerRadix)
 {
     Rational rat = (m_bRecord ? m_input.ToRational(m_radix, m_precision) : m_currentVal);
 
@@ -963,7 +1059,14 @@ wstring CCalcEngine::GetCurrentResultForRadix(uint32_t radix, int32_t precision)
         ChangeConstants(m_radix, m_precision);
     }
 
-    return GroupDigitsPerRadix(numberString, radix);
+    if (groupDigitsPerRadix)
+    {
+        return GroupDigitsPerRadix(numberString, radix);
+    }
+    else
+    {
+        return numberString;
+    }
 }
 
 wstring CCalcEngine::GetStringForDisplay(Rational const& rat, uint32_t radix)
@@ -987,7 +1090,7 @@ wstring CCalcEngine::GetStringForDisplay(Rational const& rat, uint32_t radix)
             if ((radix == 10) && fMsb)
             {
                 // If high bit is set, then get the decimal number in negative 2's complement form.
-                tempRat = -((tempRat ^ m_chopNumbers[m_numwidth]) + 1);
+                tempRat = -((tempRat ^ GetChopNumber()) + 1);
             }
 
             result = tempRat.ToString(radix, m_nFE, m_precision);
@@ -998,4 +1101,15 @@ wstring CCalcEngine::GetStringForDisplay(Rational const& rat, uint32_t radix)
     }
 
     return result;
+}
+
+double CCalcEngine::GenerateRandomNumber()
+{
+    if (m_randomGeneratorEngine == nullptr)
+    {
+        random_device rd;
+        m_randomGeneratorEngine = std::make_unique<std::mt19937>(rd());
+        m_distr = std::make_unique<std::uniform_real_distribution<>>(0, 1);
+    }
+    return (*m_distr.get())(*m_randomGeneratorEngine.get());
 }

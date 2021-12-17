@@ -39,7 +39,7 @@
 //
 //-----------------------------------------------------------------------------
 
-void _exprat(PRAT* px, int32_t precision)
+void _exprat(_Inout_ PRAT* px, int32_t precision)
 
 {
     CREATETAYLOR();
@@ -58,12 +58,11 @@ void _exprat(PRAT* px, int32_t precision)
     DESTROYTAYLOR();
 }
 
-void exprat(PRAT* px, uint32_t radix, int32_t precision)
+void exprat(_Inout_ PRAT* px, uint32_t radix, int32_t precision)
 
 {
     PRAT pwr = nullptr;
     PRAT pint = nullptr;
-    int32_t intpwr;
 
     if (rat_gt(*px, rat_max_exp, precision) || rat_lt(*px, rat_min_exp, precision))
     {
@@ -76,7 +75,7 @@ void exprat(PRAT* px, uint32_t radix, int32_t precision)
 
     intrat(&pint, radix, precision);
 
-    intpwr = rattoi32(pint, radix, precision);
+    const int32_t intpwr = rattoi32(pint, radix, precision);
     ratpowi32(&pwr, intpwr, precision);
 
     subrat(px, pint, precision);
@@ -150,10 +149,9 @@ void _lograt(PRAT* px, int32_t precision)
     DESTROYTAYLOR();
 }
 
-void lograt(PRAT* px, int32_t precision)
+void lograt(_Inout_ PRAT* px, int32_t precision)
 
 {
-    bool fneglog;
     PRAT pwr = nullptr;    // pwr is the large scaling factor.
     PRAT offset = nullptr; // offset is the incremental scaling factor.
 
@@ -164,12 +162,10 @@ void lograt(PRAT* px, int32_t precision)
     }
 
     // Get number > 1, for scaling
-    fneglog = rat_lt(*px, rat_one, precision);
+    bool fneglog = rat_lt(*px, rat_one, precision);
     if (fneglog)
     {
-        // WARNING: This is equivalent to doing *px = 1 / *px
-        PNUMBER pnumtemp = nullptr;
-        pnumtemp = (*px)->pp;
+        PNUMBER pnumtemp = (*px)->pp;
         (*px)->pp = (*px)->pq;
         (*px)->pq = pnumtemp;
     }
@@ -178,10 +174,7 @@ void lograt(PRAT* px, int32_t precision)
     // log(x*2^(BASEXPWR*k)) = BASEXPWR*k*log(2)+log(x)
     if (LOGRAT2(*px) > 1)
     {
-        // Take advantage of px's base BASEX to scale quickly down to
-        // a reasonable range.
-        int32_t intpwr;
-        intpwr = LOGRAT2(*px) - 1;
+        const int32_t intpwr = LOGRAT2(*px) - 1;
         (*px)->pq->exp += intpwr;
         pwr = i32torat(intpwr * BASEXPWR);
         mulrat(&pwr, ln_two, precision);
@@ -224,7 +217,7 @@ void lograt(PRAT* px, int32_t precision)
     destroyrat(pwr);
 }
 
-void log10rat(PRAT* px, int32_t precision)
+void log10rat(_Inout_ PRAT* px, int32_t precision)
 
 {
     lograt(px, precision);
@@ -267,7 +260,7 @@ bool IsEven(PRAT x, uint32_t radix, int32_t precision)
 //
 //
 //---------------------------------------------------------------------------
-void powrat(PRAT* px, PRAT y, uint32_t radix, int32_t precision)
+void powrat(_Inout_ PRAT* px, _In_ PRAT y, uint32_t radix, int32_t precision)
 {
     // Handle cases where px or y is 0 by calling powratcomp directly
     if (zerrat(*px) || zerrat(y))
@@ -294,7 +287,7 @@ void powrat(PRAT* px, PRAT y, uint32_t radix, int32_t precision)
     }
 }
 
-void powratNumeratorDenominator(PRAT* px, PRAT y, uint32_t radix, int32_t precision)
+void powratNumeratorDenominator(_Inout_ PRAT* px, _In_ PRAT y, uint32_t radix, int32_t precision)
 {
     // Prepare rationals
     PRAT yNumerator = nullptr;
@@ -403,7 +396,7 @@ void powratNumeratorDenominator(PRAT* px, PRAT y, uint32_t radix, int32_t precis
 //
 //
 //---------------------------------------------------------------------------
-void powratcomp(PRAT* px, PRAT y, uint32_t radix, int32_t precision)
+void powratcomp(_Inout_ PRAT* px, _In_ PRAT y, uint32_t radix, int32_t precision)
 {
     int32_t sign = SIGN(*px);
 
@@ -448,10 +441,9 @@ void powratcomp(PRAT* px, PRAT y, uint32_t radix, int32_t precision)
             {
                 // If power is an integer let ratpowi32 deal with it.
                 PRAT iy = nullptr;
-                int32_t inty;
                 DUPRAT(iy, y);
                 subrat(&iy, podd, precision);
-                inty = rattoi32(iy, radix, precision);
+                int32_t inty = rattoi32(iy, radix, precision);
 
                 PRAT plnx = nullptr;
                 DUPRAT(plnx, *px);

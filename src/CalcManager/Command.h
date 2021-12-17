@@ -69,10 +69,6 @@ namespace CalculationManager
 
         CommandNULL = 0,
 
-        // No new command should not be added before CommandSign, 80
-        // If it is needed, the following two functions need to be revised too.
-        // CalculatorManager::MapCommandForSerialize(Command command);
-        // CalculatorManager::MapCommandForDeSerialize(unsigned char command);
         CommandSIGN = 80,
         CommandCLEAR = 81,
         CommandCENTR = 82,
@@ -97,6 +93,7 @@ namespace CalculationManager
         CommandROL = 99,
         CommandROR = 100,
         CommandCOM = 101,
+
         CommandSIN = 102,
         CommandCOS = 103,
         CommandTAN = 104,
@@ -150,6 +147,34 @@ namespace CalculationManager
         CommandF = 145, // this is last control ID which must match the string table
         CommandINV = 146,
         CommandSET_RESULT = 147,
+
+        CommandSEC = 400,
+        CommandASEC = 401,
+        CommandCSC = 402,
+        CommandACSC = 403,
+        CommandCOT = 404,
+        CommandACOT = 405,
+
+        CommandSECH = 406,
+        CommandASECH = 407,
+        CommandCSCH = 408,
+        CommandACSCH = 409,
+        CommandCOTH = 410,
+        CommandACOTH = 411,
+
+        CommandPOW2 = 412, // 2 ^ x
+        CommandAbs = 413,
+        CommandFloor = 414,
+        CommandCeil = 415,
+        CommandROLC = 416,
+        CommandRORC = 417,
+        CommandLogBaseY = 500,
+        CommandNand = 501,
+        CommandNor = 502,
+
+        CommandRSHFL = 505,
+        CommandRand = 600,
+        CommandEuler = 601,
 
         CommandAnd = 86,
         CommandOR = 87,

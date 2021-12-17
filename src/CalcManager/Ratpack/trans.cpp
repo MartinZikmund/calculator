@@ -16,17 +16,17 @@
 
 #include "ratpak.h"
 
-void scalerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t precision)
+void scalerat(_Inout_ PRAT* pa, AngleType angletype, uint32_t radix, int32_t precision)
 {
     switch (angletype)
     {
-    case ANGLE_RAD:
+    case AngleType::Radians:
         scale2pi(pa, radix, precision);
         break;
-    case ANGLE_DEG:
+    case AngleType::Degrees:
         scale(pa, rat_360, radix, precision);
         break;
-    case ANGLE_GRAD:
+    case AngleType::Gradians:
         scale(pa, rat_400, radix, precision);
         break;
     }
@@ -98,13 +98,13 @@ void sinrat(PRAT* px, uint32_t radix, int32_t precision)
     _sinrat(px, precision);
 }
 
-void sinanglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t precision)
+void sinanglerat(_Inout_ PRAT* pa, AngleType angletype, uint32_t radix, int32_t precision)
 
 {
     scalerat(pa, angletype, radix, precision);
     switch (angletype)
     {
-    case ANGLE_DEG:
+    case AngleType::Degrees:
         if (rat_gt(*pa, rat_180, precision))
         {
             subrat(pa, rat_360, precision);
@@ -112,7 +112,7 @@ void sinanglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t
         divrat(pa, rat_180, precision);
         mulrat(pa, pi, precision);
         break;
-    case ANGLE_GRAD:
+    case AngleType::Gradians:
         if (rat_gt(*pa, rat_200, precision))
         {
             subrat(pa, rat_400, precision);
@@ -189,19 +189,19 @@ void _cosrat(PRAT* px, uint32_t radix, int32_t precision)
     }
 }
 
-void cosrat(PRAT* px, uint32_t radix, int32_t precision)
+void cosrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision)
 {
     scale2pi(px, radix, precision);
     _cosrat(px, radix, precision);
 }
 
-void cosanglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t precision)
+void cosanglerat(_Inout_ PRAT* pa, AngleType angletype, uint32_t radix, int32_t precision)
 
 {
     scalerat(pa, angletype, radix, precision);
     switch (angletype)
     {
-    case ANGLE_DEG:
+    case AngleType::Degrees:
         if (rat_gt(*pa, rat_180, precision))
         {
             PRAT ptmp = nullptr;
@@ -213,7 +213,7 @@ void cosanglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t
         divrat(pa, rat_180, precision);
         mulrat(pa, pi, precision);
         break;
-    case ANGLE_GRAD:
+    case AngleType::Gradians:
         if (rat_gt(*pa, rat_200, precision))
         {
             PRAT ptmp = nullptr;
@@ -261,19 +261,19 @@ void _tanrat(PRAT* px, uint32_t radix, int32_t precision)
     destroyrat(ptmp);
 }
 
-void tanrat(PRAT* px, uint32_t radix, int32_t precision)
+void tanrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision)
 {
     scale2pi(px, radix, precision);
     _tanrat(px, radix, precision);
 }
 
-void tananglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t precision)
+void tananglerat(_Inout_ PRAT* pa, AngleType angletype, uint32_t radix, int32_t precision)
 
 {
     scalerat(pa, angletype, radix, precision);
     switch (angletype)
     {
-    case ANGLE_DEG:
+    case AngleType::Degrees:
         if (rat_gt(*pa, rat_180, precision))
         {
             subrat(pa, rat_180, precision);
@@ -281,7 +281,7 @@ void tananglerat(_Inout_ PRAT* pa, ANGLE_TYPE angletype, uint32_t radix, int32_t
         divrat(pa, rat_180, precision);
         mulrat(pa, pi, precision);
         break;
-    case ANGLE_GRAD:
+    case AngleType::Gradians:
         if (rat_gt(*pa, rat_200, precision))
         {
             subrat(pa, rat_200, precision);
