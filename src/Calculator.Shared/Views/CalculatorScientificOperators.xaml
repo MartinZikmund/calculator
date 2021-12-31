@@ -1078,7 +1078,6 @@
 						 Grid.Column="6"
 						 Grid.ColumnSpan="3"
 						 AutomationProperties.HeadingLevel="Level1"
-						 ButtonStyle="{StaticResource NumericButtonStyle18}"
-						 DecimalButtonStyle="{StaticResource DecimalButtonStyle}" />
+						 ButtonStyle="{StaticResource NumericButtonStyle18}" />
 	</Grid>
 </UserControl>

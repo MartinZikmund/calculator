@@ -2566,6 +2566,11 @@ namespace CalculatorApp.ViewModel
             return CalculatorAnnouncement.GetDisplayUpdatedAnnouncement(announcement);
         }
 
-        private void IFTPlatformException(bool result) { /* hresult validation is not used in C# */}
+		internal void SetBitshiftRadioButtonCheckedAnnouncement(string announcement)
+		{
+			Announcement = CalculatorAnnouncement.GetBitShiftRadioButtonCheckedAnnouncement(announcement);
+		}
+
+		private void IFTPlatformException(bool result) { /* hresult validation is not used in C# */}
     }
 }

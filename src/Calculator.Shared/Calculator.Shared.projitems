@@ -15,6 +15,9 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Common\NumberBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\OperatorPanelButton.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\OperatorPaneListView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Telemetry\AnalyticsService.Wasm.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Telemetry\AnalyticsService.AppCenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Telemetry\AnalyticsService.cs" />
@@ -144,6 +147,7 @@
       <DependentUpon>OperatorsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Views\StateTriggers\AspectRatioTrigger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\StateTriggers\ControlSizeTrigger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\SupplementaryResults.xaml.cs">
       <DependentUpon>SupplementaryResults.xaml</DependentUpon>
     </Compile>

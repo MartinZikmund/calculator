@@ -1,140 +1,146 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using CalculatorApp.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Windows.System;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Data;
 
-namespace CalculatorApp.Controls
+namespace CalculatorApp
 {
-	public partial class CalculatorButton : Button
+	namespace Controls
 	{
-		public CalculatorButton()
+		public sealed class CalculatorButton : Windows.UI.Xaml.Controls.Button
 		{
-			// Set the default bindings for this button, these can be overwritten by Xaml if needed
-			// These are a replacement for binding in styles
-			Binding commandBinding = new Binding();
-			commandBinding.Path = new PropertyPath("ButtonPressed");
-			this.SetBinding(Button.CommandProperty, commandBinding);
-		}
-
-		// ButtonId
-		public NumbersAndOperatorsEnum ButtonId
-		{
-			get { return (NumbersAndOperatorsEnum)GetValue(ButtonIdProperty); }
-			set { SetValue(ButtonIdProperty, value); }
-		}
-
-		public static readonly DependencyProperty ButtonIdProperty =
-			DependencyProperty.Register(
-				"ButtonId",
-				typeof(NumbersAndOperatorsEnum),
-				typeof(CalculatorButton),
-				new PropertyMetadata(
-					null,
-					(s, e) => (s as CalculatorButton)?.OnButtonIdPropertyChanged(
-						(NumbersAndOperatorsEnum)(e.OldValue ?? NumbersAndOperatorsEnum.None),
-						(NumbersAndOperatorsEnum)(e.NewValue ?? NumbersAndOperatorsEnum.None)
-					)
-				)
-			);
-
-		// AuditoryFeedback
-		public string AuditoryFeedback
-		{
-			get { return (string)GetValue(AuditoryFeedbackProperty); }
-			set { SetValue(AuditoryFeedbackProperty, value); }
-		}
-
-		public static readonly DependencyProperty AuditoryFeedbackProperty =
-			DependencyProperty.Register(
-				name: "AuditoryFeedback",
-				propertyType: typeof(string),
-				ownerType: typeof(CalculatorButton),
-				typeMetadata: new PropertyMetadata(
-					defaultValue: null,
-					propertyChangedCallback: (s, e) => (s as CalculatorButton)?.OnAuditoryFeedbackPropertyChanged(
-						oldValue: e.OldValue as string,
-						newValue: e.NewValue as string)));
-
-		// HoverBackground
-		public Brush HoverBackground
-		{
-			get { return (Brush)GetValue(HoverBackgroundProperty); }
-			set { SetValue(HoverBackgroundProperty, value); }
-		}
-
-		public static readonly DependencyProperty HoverBackgroundProperty =
-			DependencyProperty.Register("HoverBackground", typeof(Brush), typeof(CalculatorButton), new PropertyMetadata(null));
-
-		// HoverForeground
-		public Brush HoverForeground
-		{
-			get { return (Brush)GetValue(HoverForegroundProperty); }
-			set { SetValue(HoverForegroundProperty, value); }
-		}
-
-		public static readonly DependencyProperty HoverForegroundProperty =
-			DependencyProperty.Register("HoverForeground", typeof(Brush), typeof(CalculatorButton), new PropertyMetadata(null));
-
-		// PressBackground
-		public Brush PressBackground
-		{
-			get { return (Brush)GetValue(PressBackgroundProperty); }
-			set { SetValue(PressBackgroundProperty, value); }
-		}
-
-		public static readonly DependencyProperty PressBackgroundProperty =
-			DependencyProperty.Register("PressBackground", typeof(Brush), typeof(CalculatorButton), new PropertyMetadata(null));
-
-		// PressForeground
-		public Brush PressForeground
-		{
-			get { return (Brush)GetValue(PressForegroundProperty); }
-			set { SetValue(PressBackgroundProperty, value); }
-		}
-
-		public static readonly DependencyProperty PressForegroundProperty =
-			DependencyProperty.Register("PressForeground", typeof(Brush), typeof(CalculatorButton), new PropertyMetadata(null));
-
-		// PROTECTED 
-
-		protected override void OnKeyDown(KeyRoutedEventArgs e)
-		{
-			// Ignore the Enter key
-			if (e.Key == VirtualKey.Enter)
+			public CalculatorButton()
 			{
-				return;
+				// Set the default bindings for this button, these can be overwritten by Xaml if needed
+				// These are a replacement for binding in styles
+				Binding commandBinding = new Binding();
+				commandBinding.Path = new PropertyPath("ButtonPressed");
+				this.SetBinding(CommandProperty, commandBinding);
 			}
 
-			base.OnKeyDown(e);
-		}
-
-		protected override void OnKeyUp(KeyRoutedEventArgs e)
-		{
-			// Ignore the Enter key
-			if (e.Key == VirtualKey.Enter)
+			public NumbersAndOperatorsEnum ButtonId
 			{
-				return;
+				get { return (NumbersAndOperatorsEnum)GetValue(ButtonIdProperty); }
+				set { SetValue(ButtonIdProperty, value); }
 			}
 
-			base.OnKeyUp(e);
-		}
+			// Using a DependencyProperty as the backing store for ButtonId.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty ButtonIdProperty =
+				DependencyProperty.Register(nameof(ButtonId), typeof(NumbersAndOperatorsEnum), typeof(CalculatorButton), new PropertyMetadata(default(NumbersAndOperatorsEnum), new PropertyChangedCallback((sender, args) =>
+				{
+					var self = (CalculatorButton)sender;
+					self.OnButtonIdPropertyChanged((NumbersAndOperatorsEnum)args.OldValue, (NumbersAndOperatorsEnum)args.NewValue);
+				})));
 
-		// PRIVATE
+			public string AuditoryFeedback
+			{
+				get { return (string)GetValue(AuditoryFeedbackProperty); }
+				set { SetValue(AuditoryFeedbackProperty, value); }
+			}
 
-		private void OnButtonIdPropertyChanged(NumbersAndOperatorsEnum oldValue, NumbersAndOperatorsEnum newValue)
-		{
-			this.CommandParameter = new CalculatorButtonPressedEventArgs(AuditoryFeedback, newValue);
-		}
+			// Using a DependencyProperty as the backing store for AuditoryFeedback.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty AuditoryFeedbackProperty =
+				DependencyProperty.Register(nameof(AuditoryFeedback), typeof(string), typeof(CalculatorButton), new PropertyMetadata(string.Empty, new PropertyChangedCallback((sender, args) =>
+				{
+					var self = (CalculatorButton)sender;
+					self.OnAuditoryFeedbackPropertyChanged((string)args.OldValue, (string)args.NewValue);
+				})));
 
-		private void OnAuditoryFeedbackPropertyChanged(string oldValue, string newValue)
-		{
-			this.CommandParameter = new CalculatorButtonPressedEventArgs(newValue, ButtonId);
+			public Windows.UI.Xaml.Media.Brush HoverBackground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(HoverBackgroundProperty); }
+				set { SetValue(HoverBackgroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for HoverBackground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty HoverBackgroundProperty =
+				DependencyProperty.Register(nameof(HoverBackground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			public Windows.UI.Xaml.Media.Brush HoverForeground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(HoverForegroundProperty); }
+				set { SetValue(HoverForegroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for HoverForeground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty HoverForegroundProperty =
+				DependencyProperty.Register(nameof(HoverForeground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			public Windows.UI.Xaml.Media.Brush PressBackground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(PressBackgroundProperty); }
+				set { SetValue(PressBackgroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for PressBackground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty PressBackgroundProperty =
+				DependencyProperty.Register(nameof(PressBackground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			public Windows.UI.Xaml.Media.Brush PressForeground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(PressForegroundProperty); }
+				set { SetValue(PressForegroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for PressForeground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty PressForegroundProperty =
+				DependencyProperty.Register(nameof(PressForeground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			public Windows.UI.Xaml.Media.Brush DisabledBackground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(DisabledBackgroundProperty); }
+				set { SetValue(DisabledBackgroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for DisabledBackground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty DisabledBackgroundProperty =
+				DependencyProperty.Register(nameof(DisabledBackground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			public Windows.UI.Xaml.Media.Brush DisabledForeground
+			{
+				get { return (Windows.UI.Xaml.Media.Brush)GetValue(DisabledForegroundProperty); }
+				set { SetValue(DisabledForegroundProperty, value); }
+			}
+
+			// Using a DependencyProperty as the backing store for DisabledForeground.  This enables animation, styling, binding, etc...
+			public static readonly DependencyProperty DisabledForegroundProperty =
+				DependencyProperty.Register(nameof(DisabledForeground), typeof(Windows.UI.Xaml.Media.Brush), typeof(CalculatorButton), new PropertyMetadata(default(Windows.UI.Xaml.Media.Brush)));
+
+			protected override void OnKeyDown(KeyRoutedEventArgs e)
+			{
+				// Ignore the Enter key
+				if (e.Key == VirtualKey.Enter)
+				{
+					return;
+				}
+
+				base.OnKeyDown(e);
+			}
+
+			protected override void OnKeyUp(KeyRoutedEventArgs e)
+			{
+				// Ignore the Enter key
+				if (e.Key == VirtualKey.Enter)
+				{
+					return;
+				}
+
+				base.OnKeyUp(e);
+			}
+
+			private void OnButtonIdPropertyChanged(NumbersAndOperatorsEnum oldValue, NumbersAndOperatorsEnum newValue)
+			{
+				this.CommandParameter = new CalculatorButtonPressedEventArgs(AuditoryFeedback, newValue);
+			}
+
+			private void OnAuditoryFeedbackPropertyChanged(string oldValue, string newValue)
+			{
+				this.CommandParameter = new CalculatorButtonPressedEventArgs(newValue, ButtonId);
+			}
 		}
 	}
 }

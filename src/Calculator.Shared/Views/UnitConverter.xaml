@@ -1122,7 +1122,6 @@
                              VerticalAlignment="Stretch"
                              AutomationProperties.HeadingLevel="Level1"
                              ButtonStyle="{StaticResource NumericButtonStyle24}"
-							 DecimalButtonStyle="{StaticResource DecimalButtonStyle}"
                              TabIndex="10"
                              TabNavigation="Local"/>
 			<controls:CalculatorButton x:Name="ConverterNegateButton"

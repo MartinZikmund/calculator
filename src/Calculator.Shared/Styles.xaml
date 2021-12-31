@@ -10,14 +10,41 @@
 					xmlns:Controls="using:CalculatorApp.Controls"
 					xmlns:common="using:CalculatorApp.Common"
 					xmlns:converters="using:CalculatorApp.Converters"
+		            xmlns:contract7NotPresent="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractNotPresent(Windows.Foundation.UniversalApiContract,7)"
+					xmlns:contract7Present="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
 					xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 					xmlns:local="using:CalculatorApp"
+					xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 					mc:Ignorable="xamarin android ios wasm macos skia">
 
 	<ResourceDictionary.MergedDictionaries>
-		<!--
-					<XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-				-->
+		<XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls"/>
+
+		<!-- Overwrite some resources of WinUI -->
+		<ResourceDictionary>
+			<!-- overwrite the background of navigationview content to transparent to show Mica background -->
+			<StaticResource x:Key="NavigationViewContentBackground" ResourceKey="SystemControlTransparentBrush"/>
+			<!-- overwrite the NavigationView content margin -->
+			<Thickness x:Key="NavigationViewContentPresenterMargin">0</Thickness>
+			<!-- overwrite the NavigationView content border thickness -->
+			<Thickness x:Key="NavigationViewMinimalContentGridBorderThickness">0</Thickness>
+
+			<!-- overwrite the NavigationView pane background -->
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceDictionary x:Key="Default">
+					<StaticResource x:Key="DarkAcrylicInAppFillColorDefaultBrush" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
+					<StaticResource x:Key="NavigationViewDefaultPaneBackground" ResourceKey="DarkAcrylicInAppFillColorDefaultBrush"/>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key="Light">
+					<StaticResource x:Key="LightAcrylicInAppFillColorDefaultBrush" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
+					<StaticResource x:Key="NavigationViewDefaultPaneBackground" ResourceKey="LightAcrylicInAppFillColorDefaultBrush"/>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key="HighContrast">
+					<StaticResource x:Key="HCAcrylicInAppFillColorDefaultBrush" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
+					<StaticResource x:Key="NavigationViewDefaultPaneBackground" ResourceKey="HCAcrylicInAppFillColorDefaultBrush"/>
+				</ResourceDictionary>
+			</ResourceDictionary.ThemeDictionaries>
+		</ResourceDictionary>
 	</ResourceDictionary.MergedDictionaries>
 
 	<ResourceDictionary.ThemeDictionaries>
@@ -25,22 +52,6 @@
 		<ResourceDictionary x:Key="Default">
 
 			<Color x:Key="SystemAltMediumLowColor">#66FFFFFF</Color>
-
-			<Thickness x:Key="HighContrastThicknessTop">
-				0,0,0,0
-			</Thickness>
-
-			<x:Double x:Key="HighContrastStrokeThickness">
-				0
-			</x:Double>
-
-			<Color x:Key="AltHighColor">
-				#FF000000
-			</Color>
-
-			<Color x:Key="ChromeMediumLowColor">
-				#FF2B2B2B
-			</Color>
 
 			<Color x:Key="XamarinBackgroundColor">#FFEBEBEB</Color>
 
@@ -50,10 +61,10 @@
 
 			<SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush"
 							 Color="{StaticResource AccentHoverColor}" />
-			
+
 			<SolidColorBrush x:Key="SystemControlHighlightAccentBrush"
 							 Color="{StaticResource AccentHoverColor}" />
-			
+
 			<SolidColorBrush x:Key="SystemControlForegroundAccentBrush"
 							 Color="{StaticResource AccentHoverColor}" />
 
@@ -69,179 +80,342 @@
 			<SolidColorBrush x:Key="AccentHoverForegroundColorBrush"
 			                 Color="White" />
 
-			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush"
-							 Color="{StaticResource AltHighColor}" />
-
-			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
-							 Color="{StaticResource ChromeMediumLowColor}" />
-
 			<SolidColorBrush x:Key="TitleBarBackgroundTransparentBrush"
 							 Color="Transparent" />
 
 			<SolidColorBrush x:Key="TitleBarForegroundBaseHighBrush"
 							 Color="{StaticResource SystemBaseHighColor}" />
-
-			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush"
-							 Color="Transparent" />
-
-			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush"
-							 Color="Transparent" />
-
-			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush"
-							 Color="{ThemeResource SystemAltMediumLowColor}" />
-
-			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush"
-							 Color="{StaticResource SystemBaseMediumHighColor}" />
 
 			<SolidColorBrush x:Key="XamarinBackgroundBrush"
 							 Color="{StaticResource XamarinBackgroundColor}" />
 
-			<win:RevealBackgroundBrush x:Key="AppControlHoverButtonFaceBrush"
-									   Color="#18FFFFFF" />
 
+			<!-- WinUI 2.6 styles -->
+			<Thickness x:Key="ControlBorderThemeThickness">0</Thickness>
+			<Thickness x:Key="HighContrastThicknessTop">0,0,0,0</Thickness>
+			<x:Double x:Key="HighContrastStrokeThickness">0</x:Double>
+			<Color x:Key="AltHighColor">#FF000000</Color>
+			<Color x:Key="ChromeMediumLowColor">#FF2B2B2B</Color>
+			<Color x:Key="OperatorPanelScrollButtonBackgroundColor">#FF858585</Color>
+			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="{StaticResource AltHighColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource ChromeMediumLowColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush" Color="Transparent"/>
+			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush" Color="Transparent"/>
+			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush" Color="{ThemeResource SystemAltMediumLowColor}"/>
+			<SolidColorBrush x:Key="AppOperatorPanelBackground"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAltMediumLowColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush" Color="{StaticResource SystemBaseMediumHighColor}"/>
+			<win:RevealBackgroundBrush x:Key="AppControlHoverButtonFaceBrush"
+                                           FallbackColor="#18FFFFFF"
+                                           Color="#18FFFFFF"/>
 			<xamarin:SolidColorBrush x:Key="AppControlHoverButtonFaceBrush"
 									 Color="#18FFFFFF" />
-
 			<win:RevealBackgroundBrush x:Key="AppControlPressedButtonFaceBrush"
-									   Color="#30FFFFFF" />
-
+                                           FallbackColor="#30FFFFFF"
+                                           Color="#30FFFFFF"/>
 			<xamarin:SolidColorBrush x:Key="AppControlPressedButtonFaceBrush"
 									 Color="#30FFFFFF" />
+			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush" Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush" Color="{StaticResource SystemBaseHighColor}"/>
+			<SolidColorBrush x:Key="OperatorPanelScrollButtonBackgroundBrush" Color="{ThemeResource OperatorPanelScrollButtonBackgroundColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonBrush"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonToggledBrush"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAccentColor}"/>
 
-			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush"
-							 Color="{ThemeResource SystemAccentColor}" />
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonHoverBrush"
+                                     Opacity="0.9"
+                                     Color="{ThemeResource SystemAccentColor}"/>
 
-			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush"
-							 Color="{StaticResource SystemBaseHighColor}" />
-
-			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush"
-							 Color="Red" />
-
+			<SolidColorBrush x:Key="AppControlForegroundAccentBrush" Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush" Color="Red"/>
 			<win:RevealBorderBrush x:Key="AppControlForegroundTransparentRevealBorderBrush"
-			                       FallbackColor="Transparent"
-			                       TargetTheme="Dark"
-			                       Color="Transparent" />
-
+                                       FallbackColor="Transparent"
+                                       TargetTheme="Dark"
+                                       Color="Transparent"/>
 			<xamarin:SolidColorBrush x:Key="AppControlForegroundTransparentRevealBorderBrush"
-			                         Color="Transparent" />
-
-			<win:RevealBackgroundBrush x:Key="AppControlHighlightAltListAccentHighRevealBackgroundBrush"
-			                           TargetTheme="Dark"
-			                           Color="{ThemeResource SystemAccentColorDark3}"
-			                           FallbackColor="{ThemeResource SystemAccentColorDark3}" />
-			<xamarin:SolidColorBrush x:Key="AppControlHighlightAltListAccentHighRevealBackgroundBrush"
-			                         Color="{ThemeResource SystemAccentColorDark3}" />
-
+									 Color="Transparent" />
+			<win:RevealBackgroundBrush x:Key="AppControlHighlightAccentRevealBackgroundBrush"
+                                           FallbackColor="{ThemeResource SystemAccentColor}"
+                                           TargetTheme="Dark"
+                                           Color="{ThemeResource SystemAccentColor}"/>
+			<xamarin:SolidColorBrush x:Key="AppControlHighlightAccentRevealBackgroundBrush"
+									 Color="{ThemeResource SystemAccentColor}" />
+			<win:RevealBackgroundBrush x:Key="AppControlBackgroundListAccentHighRevealBackgroundBrush"
+                                           FallbackColor="{ThemeResource SystemAccentColorDark3}"
+                                           TargetTheme="Dark"
+                                           Color="{ThemeResource SystemAccentColorDark3}"/>
+			<xamarin:SolidColorBrush x:Key="AppControlBackgroundListAccentHighRevealBackgroundBrush"
+									 Color="{ThemeResource SystemAccentColorDark3}" />
 			<win:AcrylicBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush"
-			                  BackgroundSource="HostBackdrop"
-			                  FallbackColor="{ThemeResource SystemChromeMediumColor}"
-			                  TintColor="{ThemeResource SystemChromeLowColor}"
-			                  TintOpacity="0.7" />
-
+                                  BackgroundSource="HostBackdrop"
+                                  FallbackColor="{ThemeResource SystemChromeMediumColor}"
+                                  TintColor="{ThemeResource SystemChromeLowColor}"
+                                  TintOpacity="0.7"/>
 			<xamarin:SolidColorBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush"
 			                         Color="{ThemeResource SystemChromeMediumColor}" />
+			<ApplicationTheme x:Key="CalcApplicationTheme">Dark</ApplicationTheme>
+			<SolidColorBrush x:Key="AppChromeAcrylicOperatorFlyoutBackgroundBrush" Color="#FF2F2F2F"/>
+			<SolidColorBrush x:Key="AppControlTransparentButtonBackgroundBrush" Color="Transparent"/>
+
+			<SolidColorBrush x:Key="EquationBrush1" Color="#4D92C8"/>
+			<SolidColorBrush x:Key="EquationBrush2" Color="#4DCDD5"/>
+			<SolidColorBrush x:Key="EquationBrush3" Color="#A366E0"/>
+			<SolidColorBrush x:Key="EquationBrush4" Color="#58A358"/>
+			<SolidColorBrush x:Key="EquationBrush5" Color="#4DDB97"/>
+			<SolidColorBrush x:Key="EquationBrush6" Color="#4DA688"/>
+			<SolidColorBrush x:Key="EquationBrush7" Color="#8A8B8C"/>
+			<SolidColorBrush x:Key="EquationBrush8" Color="#EF5865"/>
+			<SolidColorBrush x:Key="EquationBrush9" Color="#EB4DAF"/>
+			<SolidColorBrush x:Key="EquationBrush10" Color="#CA5B93"/>
+			<SolidColorBrush x:Key="EquationBrush11" Color="#FFCE4D"/>
+			<SolidColorBrush x:Key="EquationBrush12" Color="#F99255"/>
+			<SolidColorBrush x:Key="EquationBrush13" Color="#B0896D"/>
+			<SolidColorBrush x:Key="EquationBrush14" Color="#FFFFFF"/>
+
+			<StaticResource x:Key="CalcButtonTextFillColorDefaultBrush" ResourceKey="TextFillColorPrimaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorHoverBrush" ResourceKey="TextFillColorPrimaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorPressedBrush" ResourceKey="TextFillColorSecondaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorDisabledBrush" ResourceKey="TextFillColorDisabledBrush"/>
+			<Color x:Key="CalcButtonBaseFillColor">#FFFFFF</Color>
+			<SolidColorBrush x:Key="CalcButtonFillColorDefaultBrush"
+                                     Opacity="0.125"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorHoverBrush"
+                                     Opacity="0.0852"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorPressedBrush"
+                                     Opacity="0.0359"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorDisabledBrush"
+                                     Opacity="0.0359"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorDefaultBrush"
+                                     Opacity="0.0852"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorHoverBrush"
+                                     Opacity="0.1256"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorPressedBrush"
+                                     Opacity="0.0852"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorDisabledBrush"
+                                     Opacity="0.0359"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+
+			<Color x:Key="BackgroundSmokeFillColor">#000000</Color>
+			<SolidColorBrush x:Key="BackgroundSmokeFillColorBrush"
+                                     Opacity="0.42"
+                                     Color="{StaticResource BackgroundSmokeFillColor}"/>
+
+			<StaticResource x:Key="AppControlForegroundSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush"/>
+			<StaticResource x:Key="AppControlBackgroundTertiaryBrush" ResourceKey="SubtleFillColorTertiaryBrush"/>
+			<StaticResource x:Key="AppControlBackgroundSecondaryBrush" ResourceKey="SubtleFillColorSecondaryBrush"/>
 		</ResourceDictionary>
 
 		<ResourceDictionary x:Key="Light">
 
+			<SolidColorBrush x:Key="TitleBarBackgroundTransparentBrush"
+							 Color="Transparent" />
+			<SolidColorBrush x:Key="TitleBarForegroundBaseHighBrush"
+							 Color="{StaticResource SystemBaseHighColor}" />
 
+			<!-- WinUI 2.6 styles -->
+
+			<Thickness x:Key="ControlBorderThemeThickness">0</Thickness>
 			<Thickness x:Key="HighContrastThicknessTop">0,0,0,0</Thickness>
 			<x:Double x:Key="HighContrastStrokeThickness">0</x:Double>
 			<Color x:Key="AltHighColor">#FFF2F2F2</Color>
 			<Color x:Key="ChromeMediumLowColor">#FFE0E0E0</Color>
-			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush"
-							 Color="{StaticResource SystemAltHighColor}" />
-			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
-							 Color="{StaticResource ChromeMediumLowColor}" />
-			<SolidColorBrush x:Key="TitleBarBackgroundTransparentBrush"
-							 Color="Transparent" />
-			<SolidColorBrush x:Key="TitleBarForegroundBaseHighBrush"
-							 Color="{StaticResource SystemBaseHighColor}" />
-			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush"
-							 Color="Transparent" />
-			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush"
-							 Color="Transparent" />
-			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush"
-							 Color="{ThemeResource SystemAltMediumLowColor}" />
-			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush"
-							 Color="{StaticResource SystemBaseMediumHighColor}" />
+			<Color x:Key="OperatorPanelScrollButtonBackgroundColor">#FF858585</Color>
+			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="{StaticResource SystemAltHighColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource ChromeMediumLowColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush" Color="Transparent"/>
+			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush" Color="Transparent"/>
+			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush" Color="{ThemeResource SystemAltMediumLowColor}"/>
+			<SolidColorBrush x:Key="AppOperatorPanelBackground"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAltMediumLowColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush" Color="{StaticResource SystemBaseMediumHighColor}"/>
 			<win:RevealBackgroundBrush x:Key="AppControlHoverButtonFaceBrush"
-									   Color="#17000000" />
-
+                                           FallbackColor="#17000000"
+                                           Color="#17000000"/>
 			<xamarin:SolidColorBrush x:Key="AppControlHoverButtonFaceBrush"
 									 Color="#17000000" />
-
 			<win:RevealBackgroundBrush x:Key="AppControlPressedButtonFaceBrush"
-									   Color="#30000000" />
-
+                                           FallbackColor="#30000000"
+                                           Color="#30000000"/>
 			<xamarin:SolidColorBrush x:Key="AppControlPressedButtonFaceBrush"
 									 Color="#30000000" />
-			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush"
-							 Color="{ThemeResource SystemAccentColor}" />
-			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush"
-							 Color="{StaticResource SystemBaseHighColor}" />
-			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush"
-							 Color="Red" />
+			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush" Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush" Color="{StaticResource SystemBaseHighColor}"/>
+			<SolidColorBrush x:Key="OperatorPanelScrollButtonBackgroundBrush" Color="{ThemeResource OperatorPanelScrollButtonBackgroundColor}"/>
+			<SolidColorBrush x:Key="AppControlForegroundAccentBrush" Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush" Color="Red"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonBrush"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAccentColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonToggledBrush"
+                                     Opacity="0.4"
+                                     Color="{ThemeResource SystemAccentColor}"/>
+
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonHoverBrush"
+                                     Opacity="0.7"
+                                     Color="{ThemeResource SystemAccentColor}"/>
+
 			<win:RevealBorderBrush x:Key="AppControlForegroundTransparentRevealBorderBrush"
-			                       FallbackColor="Transparent"
-			                       TargetTheme="Light"
-			                       Color="Transparent" />
-
+                                       FallbackColor="Transparent"
+                                       TargetTheme="Light"
+                                       Color="Transparent"/>
 			<xamarin:SolidColorBrush x:Key="AppControlForegroundTransparentRevealBorderBrush"
-			                         Color="Transparent" />
-
-			<win:RevealBackgroundBrush x:Key="AppControlHighlightAltListAccentHighRevealBackgroundBrush"
-			                           TargetTheme="Light"
-			                           Color="{ThemeResource SystemAccentColorLight3}"
-			                           FallbackColor="{ThemeResource SystemAccentColorLight3}" />
-			<xamarin:SolidColorBrush x:Key="AppControlHighlightAltListAccentHighRevealBackgroundBrush"
-			                         Color="{ThemeResource SystemColorHighlightTextColor}" />
+									 Color="Transparent" />
+			<win:RevealBackgroundBrush x:Key="AppControlHighlightAccentRevealBackgroundBrush"
+                                           FallbackColor="{ThemeResource SystemAccentColor}"
+                                           TargetTheme="Light"
+                                           Color="{ThemeResource SystemAccentColor}"/>
+			<xamarin:SolidColorBrush x:Key="AppControlHighlightAccentRevealBackgroundBrush"
+									 Color="{ThemeResource SystemAccentColor}" />
+			<win:RevealBackgroundBrush x:Key="AppControlBackgroundListAccentHighRevealBackgroundBrush"
+                                           FallbackColor="{ThemeResource SystemAccentColorLight3}"
+                                           TargetTheme="Light"
+                                           Color="{ThemeResource SystemAccentColorLight3}"/>
+			<xamarin:SolidColorBrush x:Key="AppControlBackgroundListAccentHighRevealBackgroundBrush"
+									 Color="{ThemeResource SystemAccentColorLight3}" />
 			<win:AcrylicBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush"
-			                  BackgroundSource="HostBackdrop"
-			                  FallbackColor="{ThemeResource SystemChromeMediumColor}"
-			                  TintColor="{ThemeResource SystemChromeLowColor}"
-			                  TintOpacity="0.7" />
-
+                                  BackgroundSource="HostBackdrop"
+                                  FallbackColor="{ThemeResource SystemChromeMediumColor}"
+                                  TintColor="{ThemeResource SystemChromeLowColor}"
+                                  TintOpacity="0.7"/>
 			<xamarin:SolidColorBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush"
 			                         Color="{ThemeResource SystemChromeMediumColor}" />
+			<AcrylicBrush x:Key="AppChromeAcrylicOperatorFlyoutBackgroundBrush"
+                                  BackgroundSource="HostBackdrop"
+                                  FallbackColor="{ThemeResource SystemChromeMediumColor}"
+                                  TintColor="{ThemeResource SystemChromeLowColor}"
+                                  TintOpacity="0.8"/>
+			<ApplicationTheme x:Key="CalcApplicationTheme">Light</ApplicationTheme>
+			<SolidColorBrush x:Key="AppControlTransparentButtonBackgroundBrush" Color="Transparent"/>
+
+			<SolidColorBrush x:Key="EquationBrush1" Color="#FF0063B1"/>
+			<SolidColorBrush x:Key="EquationBrush2" Color="#FF00B7C3"/>
+			<SolidColorBrush x:Key="EquationBrush3" Color="#FF6600CC"/>
+			<SolidColorBrush x:Key="EquationBrush4" Color="#FF107C10"/>
+			<SolidColorBrush x:Key="EquationBrush5" Color="#FF00CC6A"/>
+			<SolidColorBrush x:Key="EquationBrush6" Color="#FF008055"/>
+			<SolidColorBrush x:Key="EquationBrush7" Color="#FF58595B"/>
+			<SolidColorBrush x:Key="EquationBrush8" Color="#FFE81123"/>
+			<SolidColorBrush x:Key="EquationBrush9" Color="#FFE3008C"/>
+			<SolidColorBrush x:Key="EquationBrush10" Color="#FFB31564"/>
+			<SolidColorBrush x:Key="EquationBrush11" Color="#FFFFB900"/>
+			<SolidColorBrush x:Key="EquationBrush12" Color="#FFF7630C"/>
+			<SolidColorBrush x:Key="EquationBrush13" Color="#FF8E562E"/>
+			<SolidColorBrush x:Key="EquationBrush14" Color="#FF000000"/>
+
+			<StaticResource x:Key="CalcButtonTextFillColorDefaultBrush" ResourceKey="TextFillColorPrimaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorHoverBrush" ResourceKey="TextFillColorPrimaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorPressedBrush" ResourceKey="TextFillColorSecondaryBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorDisabledBrush" ResourceKey="TextFillColorDisabledBrush"/>
+			<Color x:Key="CalcButtonBaseFillColor">#FFFFFF</Color>
+			<SolidColorBrush x:Key="CalcButtonFillColorDefaultBrush"
+                                     Opacity="1"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorHoverBrush"
+                                     Opacity="0.75"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorPressedBrush"
+                                     Opacity="0.5"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonFillColorDisabledBrush"
+                                     Opacity="0.125"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorDefaultBrush"
+                                     Opacity="0.5"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorHoverBrush"
+                                     Opacity="0.25"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorPressedBrush"
+                                     Opacity="0.125"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+			<SolidColorBrush x:Key="CalcButtonAltFillColorDisabledBrush"
+                                     Opacity="0.125"
+                                     Color="{StaticResource CalcButtonBaseFillColor}"/>
+
+			<Color x:Key="BackgroundSmokeFillColor">#000000</Color>
+			<SolidColorBrush x:Key="BackgroundSmokeFillColorBrush"
+                                     Opacity="0.3"
+                                     Color="{StaticResource BackgroundSmokeFillColor}"/>
+
+			<StaticResource x:Key="AppControlForegroundSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush"/>
+			<StaticResource x:Key="AppControlBackgroundTertiaryBrush" ResourceKey="SubtleFillColorTertiaryBrush"/>
+			<StaticResource x:Key="AppControlBackgroundSecondaryBrush" ResourceKey="SubtleFillColorSecondaryBrush"/>
+			
 		</ResourceDictionary>
 		<ResourceDictionary x:Key="HighContrast">
-			<Thickness x:Key="HighContrastThicknessTop">0,1,0,0</Thickness>
-			<x:Double x:Key="HighContrastStrokeThickness">2</x:Double>
-			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush"
-							 Color="{ThemeResource SystemColorButtonFaceColor}" />
-			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
-							 Color="{ThemeResource SystemColorButtonFaceColor}" />
 			<SolidColorBrush x:Key="TitleBarBackgroundTransparentBrush"
 							 Color="{ThemeResource SystemBaseHighColor}" />
 			<SolidColorBrush x:Key="TitleBarForegroundBaseHighBrush"
 							 Color="{ThemeResource SystemBaseHighColor}" />
-			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush"
-							 Color="{ThemeResource SystemColorButtonFaceColor}" />
-			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush"
-							 Color="{ThemeResource SystemColorHighlightColor}" />
-			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush"
-							 Color="#FFCECECE" />
-			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush"
-							 Color="{ThemeResource SystemColorWindowTextColor}" />
-			<SolidColorBrush x:Key="AppControlHoverButtonFaceBrush"
-							 Color="{ThemeResource SystemColorHighlightColor}" />
-			<SolidColorBrush x:Key="AppControlPressedButtonFaceBrush"
-							 Color="{ThemeResource SystemColorButtonFaceColor}" />
-			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush"
-							 Color="Transparent" />
-			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush"
-							 Color="{ThemeResource SystemColorWindowTextColor}" />
-			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush"
-							 Color="{ThemeResource SystemColorWindowTextColor}" />
-			<SolidColorBrush x:Key="AppControlForegroundTransparentRevealBorderBrush"
-							 Color="{ThemeResource SystemColorButtonTextColor}" />
 			<SolidColorBrush x:Key="AppControlHighlightAltListAccentHighRevealBackgroundBrush"
 							 Color="{ThemeResource SystemColorHighlightTextColor}" />
-			<SolidColorBrush x:Key="AppControlListLowRevealHighlightBrush"
-							 Color="{ThemeResource SystemColorHighlightColor}" />
-			<SolidColorBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush"
-							 Color="{ThemeResource SystemColorWindowColor}" />
+
+			<!-- WinUI 2.6 styles -->
+
+			<Thickness x:Key="ControlBorderThemeThickness">1</Thickness>
+			<Thickness x:Key="HighContrastThicknessTop">0,1,0,0</Thickness>
+			<x:Double x:Key="HighContrastStrokeThickness">2</x:Double>
+			<SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="SystemControlBackgroundTransparentBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="SystemControlHighlightTransparentBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppBackgroundAltMediumLowBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="AppOperatorPanelBackground" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseMediumHighBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+			<SolidColorBrush x:Key="AppControlHoverButtonFaceBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppControlPressedButtonFaceBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppControlTransparentAccentColorBrush" Color="Transparent"/>
+			<SolidColorBrush x:Key="AppControlPageTextBaseHighColorBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+			<SolidColorBrush x:Key="OperatorPanelScrollButtonBackgroundBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="AppControlForegroundAccentBrush" Color="{ThemeResource SystemColorButtonTextColor}"/>
+			<SolidColorBrush x:Key="AppControlPageTextRedColorBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+			<SolidColorBrush x:Key="AppControlForegroundTransparentRevealBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightAccentRevealBackgroundBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppControlBackgroundListAccentHighRevealBackgroundBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<SolidColorBrush x:Key="AppControlListLowRevealHighlightBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppChromeAcrylicHostBackdropMediumLowBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+			<SolidColorBrush x:Key="AppChromeAcrylicOperatorFlyoutBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonToggledBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppControlHighlightCalcButtonHoverBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="AppControlTransparentButtonBackgroundBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+			<ApplicationTheme x:Key="CalcApplicationTheme">Dark</ApplicationTheme>
+			<SolidColorBrush x:Key="EquationBrush1" Color="{ThemeResource SystemColorGrayTextColor}"/>
+			<SolidColorBrush x:Key="EquationBrush2" Color="{ThemeResource SystemColorHighlightColor}"/>
+			<SolidColorBrush x:Key="EquationBrush3" Color="{ThemeResource SystemColorHotlightColor}"/>
+			<SolidColorBrush x:Key="EquationBrush4" Color="{ThemeResource SystemColorWindowTextColor}"/>
+
+			<StaticResource x:Key="CalcButtonFillColorDefaultBrush" ResourceKey="SystemControlBackgroundBaseLowBrush"/>
+			<StaticResource x:Key="CalcButtonFillColorHoverBrush" ResourceKey="SystemColorHighlightTextColorBrush"/>
+			<StaticResource x:Key="CalcButtonFillColorPressedBrush" ResourceKey="SystemColorHighlightTextColorBrush"/>
+			<StaticResource x:Key="CalcButtonFillColorDisabledBrush" ResourceKey="SystemControlBackgroundBaseLowBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorDefaultBrush" ResourceKey="SystemColorButtonTextColorBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorHoverBrush" ResourceKey="SystemControlHighlightBaseHighBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorPressedBrush" ResourceKey="SystemControlHighlightBaseHighBrush"/>
+			<StaticResource x:Key="CalcButtonTextFillColorDisabledBrush" ResourceKey="SystemControlDisabledBaseMediumLowBrush"/>
+			<StaticResource x:Key="CalcButtonAltFillColorDefaultBrush" ResourceKey="SystemControlBackgroundBaseLowBrush"/>
+			<StaticResource x:Key="CalcButtonAltFillColorHoverBrush" ResourceKey="SystemColorHighlightTextColorBrush"/>
+			<StaticResource x:Key="CalcButtonAltFillColorPressedBrush" ResourceKey="SystemColorHighlightTextColorBrush"/>
+			<StaticResource x:Key="CalcButtonAltFillColorDisabledBrush" ResourceKey="SystemControlBackgroundBaseLowBrush"/>
+
+			<StaticResource x:Key="BackgroundSmokeFillColorBrush" ResourceKey="SystemControlBackgroundTransparentBrush"/>
+
+			<StaticResource x:Key="AppControlForegroundSecondaryBrush" ResourceKey="SystemColorHighlightTextColorBrush"/>
+			<StaticResource x:Key="AppControlBackgroundTertiaryBrush" ResourceKey="SystemControlBackgroundTransparentBrush"/>
+			<StaticResource x:Key="AppControlBackgroundSecondaryBrush" ResourceKey="SystemControlHighlightTransparentBrush"/>
+			
 		</ResourceDictionary>
 	</ResourceDictionary.ThemeDictionaries>
 
@@ -259,8 +433,8 @@
 
 	<x:Double x:Key="SplitViewOpenPaneLength">256</x:Double>
 	<Thickness x:Key="PivotPortraitThemePadding">0,1,0,0</Thickness>
-	<x:Double x:Key="PivotHeaderItemFontSize">15</x:Double>
-	<FontWeight x:Key="PivotHeaderItemThemeFontWeight">SemiBold</FontWeight>
+	<x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
+	<FontWeight x:Key="PivotHeaderItemThemeFontWeight">Normal</FontWeight>
 
 	<x:Double x:Key="CaptionFontSize">12</x:Double>
 	<x:Double x:Key="BodyFontSize">15</x:Double>
@@ -270,342 +444,368 @@
 	<x:Double x:Key="HamburgerHeight">40</x:Double>
 	<GridLength x:Key="HamburgerHeightGridLength">40</GridLength>
 
-	<x:Double x:Key="CalcButtonCaptionSize">34</x:Double>
-	<x:Double x:Key="CalcStandardOperatorCaptionSizeLarge">24</x:Double>
 	<!-- Numpad Standard/Scientific in Fill/Full -->
 	<!-- UNO TODO Temp fix, value should be 20 -->
-	<x:Double x:Key="CalcStandardOperatorCaptionSize">17</x:Double>
 	<!-- Standard Operators Standard/Scientific in Fill/Full -->
-	<x:Double x:Key="CalcOperatorCaptionSize">15</x:Double>
 
 	<x:Double x:Key="CalcResultFontSizeL">72</x:Double>
 	<x:Double x:Key="CalcResultFontSizeM">46</x:Double>
 	<x:Double x:Key="CalcResultFontSizeS">28</x:Double>
 
+	<x:Double x:Key="IconOnlySubtleButtonHeight">32</x:Double>
+	<x:Double x:Key="CalcButtonCaptionSize">34</x:Double>
+	<x:Double x:Key="CalcButtonTextIconCaptionSize">38</x:Double>
+	<x:Double x:Key="CalcStandardOperatorCaptionSizeExtraLarge">48</x:Double>
+	<x:Double x:Key="CalcStandardOperatorCaptionSizeLarge">24</x:Double>
+	<!-- Numpad Standard/Scientific in Fill/Full -->
+	<x:Double x:Key="CalcStandardOperatorCaptionSize">20</x:Double>
+	<x:Double x:Key="CalcStandardOperatorTextIconCaptionSize">22</x:Double>
+	<x:Double x:Key="CalcStandardOperatorCaptionSizeSmall">15</x:Double>
+	<x:Double x:Key="CalcStandardOperatorCaptionSizeTiny">12</x:Double>
+	<!-- Standard Operators Standard/Scientific in Fill/Full -->
+	<x:Double x:Key="CalcOperatorCaptionSize">14</x:Double>
+	<x:Double x:Key="CalcOperatorCaptionSizeSmall">12</x:Double>
+	<x:Double x:Key="CalcOperatorTextIconCaptionSize">16</x:Double>
+
+	<!-- White and black color brushes used for the Utils::GetContrastColor -->
+	<SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+	<SolidColorBrush x:Key="BlackBrush" Color="Black"/>
+
 	<!-- Base style for calc buttons -->
 	<Style x:Key="CalcButtonStyle"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="MinWidth"
-				Value="24" />
-		<Setter Property="Padding"
-				Value="0" />
-		<Setter Property="MinHeight"
-				Value="12" />
-		<Setter Property="Margin"
-				Value="1" />
-		<Setter Property="Background"
-				Value="{ThemeResource SystemControlBackgroundAltMediumHighBrush}" />
-		<Setter Property="Foreground"
-				Value="{ThemeResource SystemControlForegroundBaseHighBrush}" />
-		<Setter Property="HoverBackground"
-				Value="{ThemeResource AppControlHoverButtonFaceBrush}" />
-		<Setter Property="HoverForeground"
-				Value="{ThemeResource SystemControlHighlightAltBaseHighBrush}" />
-		<Setter Property="PressBackground"
-				Value="{ThemeResource AppControlPressedButtonFaceBrush}" />
-		<Setter Property="PressForeground"
-				Value="{ThemeResource SystemControlHighlightAltBaseHighBrush}" />
-		<Setter Property="BorderThickness"
-				Value="1" />
-		<Setter Property="HorizontalAlignment"
-				Value="Stretch" />
-		<Setter Property="VerticalAlignment"
-				Value="Stretch" />
-		<Setter Property="FontSize"
-				Value="{StaticResource CalcButtonCaptionSize}" />
-		<Setter Property="FontWeight"
-				Value="Normal" />
-		<Setter Property="HorizontalContentAlignment"
-				Value="Center" />
-		<Setter Property="VerticalContentAlignment"
-				Value="Center" />
+                   BasedOn="{StaticResource DefaultButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="MinWidth" Value="24"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="MinHeight" Value="12"/>
+		<Setter Property="Margin" Value="1"/>
+		<Setter Property="Background" Value="{ThemeResource CalcButtonFillColorDefaultBrush}"/>
+		<Setter Property="Foreground" Value="{ThemeResource CalcButtonTextFillColorDefaultBrush}"/>
+		<Setter Property="HoverBackground" Value="{ThemeResource CalcButtonFillColorHoverBrush}"/>
+		<Setter Property="HoverForeground" Value="{ThemeResource CalcButtonTextFillColorHoverBrush}"/>
+		<Setter Property="PressBackground" Value="{ThemeResource CalcButtonFillColorPressedBrush}"/>
+		<Setter Property="PressForeground" Value="{ThemeResource CalcButtonTextFillColorPressedBrush}"/>
+		<Setter Property="DisabledBackground" Value="{ThemeResource CalcButtonFillColorDisabledBrush}"/>
+		<Setter Property="DisabledForeground" Value="{ThemeResource CalcButtonTextFillColorDisabledBrush}"/>
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="VerticalAlignment" Value="Stretch"/>
+		<Setter Property="FontSize" Value="{StaticResource CalcButtonCaptionSize}"/>
+		<Setter Property="FontWeight" Value="Normal"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
 		<Setter Property="Template">
 			<Setter.Value>
-				<ControlTemplate TargetType="Controls:CalculatorButton">
-					<Grid x:Name="RootGrid"
-						  Background="{TemplateBinding Background}">
+				<ControlTemplate TargetType="Button">
+					<ContentPresenter x:Name="ContentPresenter"
+                                              Padding="{TemplateBinding Padding}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Background="{TemplateBinding Background}"
+                                              BorderBrush="{TemplateBinding BorderBrush}"
+                                              BorderThickness="{TemplateBinding BorderThickness}"
+                                              contract7NotPresent:CornerRadius="{ThemeResource ControlCornerRadius}"
+                                              contract7Present:BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                                              contract7Present:CornerRadius="{TemplateBinding CornerRadius}"
+                                              muxc:AnimatedIcon.State="Normal"
+                                              AutomationProperties.AccessibilityView="Raw"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              ContentTransitions="{TemplateBinding ContentTransitions}">
+
+						<contract7Present:ContentPresenter.BackgroundTransition>
+							<contract7Present:BrushTransition Duration="0:0:0.083"/>
+						</contract7Present:ContentPresenter.BackgroundTransition>
+
 						<VisualStateManager.VisualStateGroups>
 							<VisualStateGroup x:Name="CommonStates">
-								<VisualStateGroup.Transitions>
-									<VisualTransition GeneratedDuration="0" />
-									<VisualTransition From="Normal"
-													  GeneratedDuration="0:0:0.1"
-													  To="KeyBoardEntry" />
-								</VisualStateGroup.Transitions>
-								<VisualState x:Name="Normal" />
+								<VisualState x:Name="Normal"/>
+
 								<VisualState x:Name="PointerOver">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding HoverBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushPointerOver}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="PointerOver" />
-										<Setter Target="RootGrid.Background"
-												Value="{Binding HoverBackground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ContentPresenter.(ContentPresenter.Foreground)"
-												Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}" />
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="PointerOver"/>
 									</VisualState.Setters>
 								</VisualState>
+
 								<VisualState x:Name="Pressed">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PressBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushPressed}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="Pressed" />
-										<Setter Target="RootGrid.Background"
-													Value="{Binding PressBackground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ContentPresenter.(ContentPresenter.Foreground)"
-													Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}" />
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="Pressed"/>
 									</VisualState.Setters>
 								</VisualState>
+
 								<VisualState x:Name="Disabled">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding DisabledBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushDisabled}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding DisabledForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="ContentPresenter.Foreground"
-												Value="{ThemeResource SystemControlDisabledBaseLowBrush}" />
-										<Setter Target="ContentPresenter.BorderThickness"
-												Value="0" />
+										<!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="Normal"/>
 									</VisualState.Setters>
 								</VisualState>
-								<VisualState x:Name="KeyBoardEntry" />
 							</VisualStateGroup>
 						</VisualStateManager.VisualStateGroups>
-
-						<ContentPresenter x:Name="ContentPresenter"
-										  Margin="{TemplateBinding Padding}"
-										  HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-										  VerticalAlignment="{TemplateBinding VerticalAlignment}"
-										  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-										  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-										  BorderBrush="{ThemeResource AppControlForegroundTransparentRevealBorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  AutomationProperties.AccessibilityView="Raw"
-										  Content="{TemplateBinding Content}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  ContentTransitions="{TemplateBinding ContentTransitions}" />
-					</Grid>
+					</ContentPresenter>
 				</ControlTemplate>
 			</Setter.Value>
 		</Setter>
 	</Style>
 
 	<Style x:Key="NumericButtonStyle"
-		   BasedOn="{StaticResource CalcButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontWeight"
-				Value="SemiBold" />
+                   BasedOn="{StaticResource CalcButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontWeight" Value="Normal"/>
 	</Style>
-
+	<Style x:Key="NumericButtonStyle10"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="10"/>
+	</Style>
 	<Style x:Key="NumericButtonStyle12"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="12" />
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="12"/>
 	</Style>
-
+	<Style x:Key="NumericButtonStyle14"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="14"/>
+	</Style>
+	<Style x:Key="NumericButtonStyle16"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="16"/>
+	</Style>
 	<Style x:Key="NumericButtonStyle18"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="18" />
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="18"/>
 	</Style>
-
 	<Style x:Key="NumericButtonStyle24"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="24" />
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="24"/>
 	</Style>
 	<Style x:Key="NumericButtonStyle28"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="28" />
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="28"/>
 	</Style>
-
 	<Style x:Key="NumericButtonStyle34"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="34" />
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="34"/>
+	</Style>
+	<Style x:Key="NumericButtonStyle38"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="38"/>
+	</Style>
+	<Style x:Key="NumericButtonStyle46"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="46"/>
+	</Style>
+	<Style x:Key="NumericButtonStyle48"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontSize" Value="48"/>
 	</Style>
 
-	<Style x:Key="NumericButtonStyle46"
-		   BasedOn="{StaticResource NumericButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontSize"
-				Value="46" />
+	<Style x:Key="SymbolOperatorKeypadButtonStyle"
+                   BasedOn="{StaticResource NumericButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontFamily" Value="{StaticResource CalculatorFontFamily}"/>
+		<Setter Property="FontSize" Value="{StaticResource CalcOperatorCaptionSize}"/>
 	</Style>
 
 	<Style x:Key="OperatorButtonStyle"
-		   BasedOn="{StaticResource CalcButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="Background"
-				Value="{ThemeResource AppBackgroundAltMediumLowBrush}" />
-		<Setter Property="Foreground"
-				Value="{ThemeResource SystemControlForegroundBaseHighBrush}" />
-		<Setter Property="FontSize"
-				Value="{StaticResource CalcOperatorCaptionSize}" />
-	</Style>
-
-	<Style x:Key="DecimalButtonStyle"
-		   BasedOn="{StaticResource OperatorButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontWeight"
-				Value="Bold" />
-		<Setter Property="FontSize"
-				Value="24" />
+                   BasedOn="{StaticResource CalcButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="Background" Value="{ThemeResource CalcButtonAltFillColorDefaultBrush}"/>
+		<Setter Property="HoverBackground" Value="{ThemeResource CalcButtonAltFillColorHoverBrush}"/>
+		<Setter Property="PressBackground" Value="{ThemeResource CalcButtonAltFillColorPressedBrush}"/>
+		<Setter Property="DisabledBackground" Value="{ThemeResource CalcButtonAltFillColorDisabledBrush}"/>
+		<Setter Property="FontSize" Value="{StaticResource CalcOperatorCaptionSize}"/>
 	</Style>
 
 	<Style x:Key="SymbolOperatorButtonStyle"
-		   BasedOn="{StaticResource OperatorButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
-		<Setter Property="FontFamily"
-				Value="{StaticResource CalculatorFontFamily}" />
+                   BasedOn="{StaticResource OperatorButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="FontFamily" Value="{StaticResource CalculatorFontFamily}"/>
 	</Style>
 
 	<Style x:Key="ParenthesisCalcButtonStyle"
-		   BasedOn="{StaticResource OperatorButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
+                   BasedOn="{StaticResource OperatorButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="Controls:CalculatorButton">
-					<Grid x:Name="RootGrid"
-						  Background="{TemplateBinding Background}">
+					<Grid x:Name="RootGrid">
 						<VisualStateManager.VisualStateGroups>
 							<VisualStateGroup x:Name="CommonStates">
-								<VisualStateGroup.Transitions>
-									<VisualTransition GeneratedDuration="0" />
-									<VisualTransition From="Normal"
-													  GeneratedDuration="0:0:0.1"
-													  To="KeyBoardEntry" />
-								</VisualStateGroup.Transitions>
-								<VisualState x:Name="Normal" />
+								<VisualState x:Name="Normal"/>
+
 								<VisualState x:Name="PointerOver">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding HoverBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushPointerOver}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ParenthesisCount" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="PointerOver" />
-										<Setter Target="RootGrid.Background"
-												Value="{Binding HoverBackground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ContentPresenter.Foreground"
-												Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ParenthesisCount.Foreground"
-												Value="{Binding HoverForeground, RelativeSource={RelativeSource TemplatedParent}}" />
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="PointerOver"/>
 									</VisualState.Setters>
 								</VisualState>
+
 								<VisualState x:Name="Pressed">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PressBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushPressed}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ParenthesisCount" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="Pressed" />
-										<Setter Target="RootGrid.Background"
-													Value="{Binding PressBackground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ContentPresenter.Foreground"
-													Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}" />
-										<Setter Target="ParenthesisCount.Foreground"
-													Value="{Binding PressForeground, RelativeSource={RelativeSource TemplatedParent}}" />
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="Pressed"/>
 									</VisualState.Setters>
 								</VisualState>
+
 								<VisualState x:Name="Disabled">
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding DisabledBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderBrush">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ButtonBorderBrushDisabled}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding DisabledForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ParenthesisCount" Storyboard.TargetProperty="Foreground">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{Binding DisabledForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
 									<VisualState.Setters>
-										<Setter Target="ContentPresenter.Foreground"
-												Value="{ThemeResource SystemControlDisabledBaseLowBrush}" />
-										<Setter Target="ParenthesisCount.Foreground"
-												Value="{ThemeResource SystemControlDisabledBaseLowBrush}" />
-										<Setter Target="ContentPresenter.BorderThickness"
-												Value="0" />
+										<!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+										<Setter Target="ContentPresenter.(muxc:AnimatedIcon.State)" Value="Normal"/>
 									</VisualState.Setters>
 								</VisualState>
-								<VisualState x:Name="KeyBoardEntry" />
 							</VisualStateGroup>
 						</VisualStateManager.VisualStateGroups>
 
 						<ContentPresenter x:Name="ContentPresenter"
-										  Margin="{TemplateBinding Padding}"
-										  HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-										  VerticalAlignment="{TemplateBinding VerticalAlignment}"
-										  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-										  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-										  BorderBrush="{ThemeResource AppControlForegroundTransparentRevealBorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  AutomationProperties.AccessibilityView="Raw"
-										  Content="{TemplateBinding Content}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  ContentTransitions="{TemplateBinding ContentTransitions}" />
+                                                  Padding="{TemplateBinding Padding}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  Background="{TemplateBinding Background}"
+                                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                                  contract7NotPresent:CornerRadius="{ThemeResource ControlCornerRadius}"
+                                                  contract7Present:BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                                                  contract7Present:CornerRadius="{TemplateBinding CornerRadius}"
+                                                  muxc:AnimatedIcon.State="Normal"
+                                                  AutomationProperties.AccessibilityView="Raw"
+                                                  Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  ContentTransitions="{TemplateBinding ContentTransitions}">
+
+							<contract7Present:ContentPresenter.BackgroundTransition>
+								<contract7Present:BrushTransition Duration="0:0:0.083"/>
+							</contract7Present:ContentPresenter.BackgroundTransition>
+						</ContentPresenter>
 						<TextBlock x:Name="ParenthesisCount"
-								   Margin="18,8,0,-8"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}"
-								   FontSize="{TemplateBinding MinHeight}"
-								   FontWeight="SemiBold"
-								   AutomationProperties.AccessibilityView="Raw"
-								   Text="{TemplateBinding Tag}" />
+                                           Margin="18,8,0,-8"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="{TemplateBinding MinHeight}"
+                                           FontWeight="SemiBold"
+                                           AutomationProperties.AccessibilityView="Raw"
+                                           Text="{TemplateBinding Tag}"/>
 					</Grid>
 				</ControlTemplate>
 			</Setter.Value>
 		</Setter>
 	</Style>
 
-	<Style x:Key="AccentCalcButtonStyle"
-		   BasedOn="{StaticResource SymbolOperatorButtonStyle}"
-		   TargetType="Controls:CalculatorButton">
+	<Style x:Key="AccentEmphasizedCalcButtonStyle"
+                   BasedOn="{StaticResource AccentButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="MinWidth" Value="24"/>
+		<Setter Property="MinHeight" Value="12"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="Margin" Value="1"/>
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="VerticalAlignment" Value="Stretch"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="FontWeight" Value="Normal"/>
+		<Setter Property="FontFamily" Value="{StaticResource CalculatorFontFamily}"/>
+		<Setter Property="FontSize" Value="{StaticResource CalcOperatorCaptionSize}"/>
+		<Setter Property="BorderBrush" Value="{ThemeResource SystemControlForegroundTransparentBrush}"/>
+		<Setter Property="BorderThickness" Value="{ThemeResource ControlBorderThemeThickness}"/>
+	</Style>
 
-		<Setter Property="Template">
-			<Setter.Value>
-				<ControlTemplate TargetType="Controls:CalculatorButton">
-					<Grid x:Name="RootGrid"
-						  Background="{TemplateBinding Background}">
-						<VisualStateManager.VisualStateGroups>
-							<VisualStateGroup x:Name="CommonStates">
-								<VisualStateGroup.Transitions>
-									<VisualTransition GeneratedDuration="0" />
-									<VisualTransition From="Normal"
-													  GeneratedDuration="0:0:0.1"
-													  To="KeyBoardEntry" />
-								</VisualStateGroup.Transitions>
-								<VisualState x:Name="Normal" />
-								<VisualState x:Name="PointerOver">
-									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="PointerOver" />
-										<Setter Target="RootGrid.Background"
-												Value="{StaticResource AccentHoverBackgroundColorBrush}" />
-										<Setter Target="ContentPresenter.(ContentPresenter.Foreground)"
-												Value="{ThemeResource AccentHoverForegroundColorBrush}" />
-									</VisualState.Setters>
-								</VisualState>
-								<VisualState x:Name="Pressed">
-									<VisualState.Setters>
-										<Setter Target="RootGrid.(RevealBrush.State)"
-												Value="Pressed" />
-										<Setter Target="RootGrid.Background"
-												Value="{StaticResource AccentPressBackgroundColorBrush}" />
-										<Setter Target="ContentPresenter.(ContentPresenter.Foreground)"
-												Value="{ThemeResource AccentHoverForegroundColorBrush}" />
-									</VisualState.Setters>
-								</VisualState>
-								<VisualState x:Name="Disabled">
-									<VisualState.Setters>
-										<Setter Target="ContentPresenter.Foreground"
-												Value="{ThemeResource SystemControlDisabledBaseLowBrush}" />
-										<Setter Target="ContentPresenter.BorderThickness"
-												Value="0" />
-									</VisualState.Setters>
-								</VisualState>
-								<VisualState x:Name="KeyBoardEntry" />
-							</VisualStateGroup>
-						</VisualStateManager.VisualStateGroups>
+	<Style x:Key="EmphasizedCalcButtonStyle"
+                   BasedOn="{StaticResource SymbolOperatorButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="HoverBackground" Value="{ThemeResource AppControlHighlightCalcButtonHoverBrush}"/>
+		<Setter Property="HoverForeground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
+		<Setter Property="PressBackground" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>
+		<Setter Property="PressForeground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
+	</Style>
 
-						<ContentPresenter x:Name="ContentPresenter"
-										  Margin="{TemplateBinding Padding}"
-										  HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-										  VerticalAlignment="{TemplateBinding VerticalAlignment}"
-										  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-										  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-										  BorderBrush="{ThemeResource AppControlForegroundTransparentRevealBorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  AutomationProperties.AccessibilityView="Raw"
-										  Content="{TemplateBinding Content}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  ContentTransitions="{TemplateBinding ContentTransitions}" />
-					</Grid>
-				</ControlTemplate>
-			</Setter.Value>
-		</Setter>
+	<Style x:Key="AccentEmphasizedOperatorCalcButtonStyle"
+                   BasedOn="{StaticResource OperatorButtonStyle}"
+                   TargetType="Controls:CalculatorButton">
+		<Setter Property="HoverBackground" Value="{ThemeResource AppControlHighlightCalcButtonHoverBrush}"/>
+		<Setter Property="HoverForeground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
+		<Setter Property="PressBackground" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>
+		<Setter Property="PressForeground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
+		<Setter Property="Background" Value="{ThemeResource AppControlHighlightCalcButtonBrush}"/>
 	</Style>
 
 	<!-- RESULTS -->
@@ -699,7 +899,7 @@
 									   Text="{TemplateBinding DisplayValue}"
 									   TextAlignment="{TemplateBinding HorizontalContentAlignment}"
 									   TextWrapping="NoWrap" />
-						<!--</ScrollViewer>-->
+							<!--</ScrollViewer>-->
 						</Viewbox>
 
 						<HyperlinkButton x:Name="ScrollLeft"
@@ -918,7 +1118,7 @@
 									   Text="{TemplateBinding DisplayValue}"
 									   TextAlignment="{TemplateBinding HorizontalContentAlignment}"
 									   TextWrapping="NoWrap" />
-						<!--</ScrollViewer>-->
+							<!--</ScrollViewer>-->
 						</Viewbox>
 
 						<HyperlinkButton x:Name="scrollLeft"
