@@ -250,12 +250,12 @@
 	<x:Double x:Key="AppMinWindowWidth">320</x:Double>
 
 	<!-- UNO TODO -->
-	<win:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalcMDL2.ttf#Calculator MDL2 Assets</win:FontFamily>
-	<android:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalcMDL2.ttf#Calculator MDL2 Assets</android:FontFamily>
-	<ios:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalcMDL2.ttf#Calculator MDL2 Assets</ios:FontFamily>
-	<macos:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalcMDL2.ttf#Calculator MDL2 Assets</macos:FontFamily>
-	<wasm:FontFamily x:Key="CalculatorFontFamily">Calculator MDL2 Assets</wasm:FontFamily>
-	<skia:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalcMDL2.ttf#Calculator MDL2 Assets</skia:FontFamily>
+	<win:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalculatorIcons.ttf#Calculator Fluent Icons</win:FontFamily>
+	<android:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalculatorIcons.ttf#Calculator Fluent Icons</android:FontFamily>
+	<ios:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalculatorIcons.ttf#Calculator Fluent Icons</ios:FontFamily>
+	<macos:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalculatorIcons.ttf#Calculator Fluent Icons</macos:FontFamily>
+	<wasm:FontFamily x:Key="CalculatorFontFamily">Calculator Fluent Icons</wasm:FontFamily>
+	<skia:FontFamily x:Key="CalculatorFontFamily">ms-appx:///Assets/CalculatorIcons.ttf#Calculator Fluent Icons</skia:FontFamily>
 
 	<x:Double x:Key="SplitViewOpenPaneLength">256</x:Double>
 	<Thickness x:Key="PivotPortraitThemePadding">0,1,0,0</Thickness>

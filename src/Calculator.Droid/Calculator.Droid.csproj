@@ -112,7 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="Assets\Fonts\winjs-symbols.ttf" />
-    <AndroidAsset Include="Assets\CalcMDL2.ttf" />
+    <AndroidAsset Include="Assets\CalculatorIcons.ttf" />
     <AndroidEnvironment Include="Environment.conf" />
     <AndroidAsset Include="Assets\Fonts\uno-fluentui-assets.ttf" />
     <None Include="Resources\AboutResources.txt" />

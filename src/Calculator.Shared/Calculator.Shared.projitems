@@ -242,8 +242,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)Assets\CalcMDL2.ttf" />
-    <Content Include="$(MSBuildThisFileDirectory)Assets\CalcMDL2.woff" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\CalculatorIcons.ttf" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\CalculatorIcons.woff2" />
     <Content Include="$(MSBuildThisFileDirectory)Assets\CalculatorAppList.png" />
     <Content Include="$(MSBuildThisFileDirectory)Assets\CalculatorLargeTile.png" />
     <Content Include="$(MSBuildThisFileDirectory)Assets\CalculatorMedTile.png" />

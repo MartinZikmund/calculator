@@ -126,7 +126,7 @@
     <BundleResource Include="Resources\uno.png" />
     <BundleResource Include="Resources\uno%402x.png" />
     <BundleResource Include="Resources\uno%403x.png" />
-    <BundleResource Include="Resources\Fonts\CalcMDL2.ttf" />
+    <BundleResource Include="Resources\Fonts\CalculatorIcons.ttf" />
   </ItemGroup>
   <ItemGroup>
     <NativeReference Include="NativeReferences\x86_64\libCalcManager.a">

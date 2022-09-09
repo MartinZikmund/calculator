@@ -133,7 +133,7 @@
     </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Entitlements.plist" />
-    <BundleResource Include="Resources\Fonts\CalcMDL2.ttf" />
+    <BundleResource Include="Resources\Fonts\CalculatorIcons.ttf" />
     <ImageAsset Include="Media.xcassets\AppIcons.appiconset\Contents.json">
       <Visible>false</Visible>
     </ImageAsset>
